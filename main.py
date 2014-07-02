@@ -104,8 +104,8 @@ class KBGalleryApp(App):
 
     def got_dirlist(self, req, res):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
-        for d in res['listdir']:
-            self.root.item_strings.append(d)
+        self.root.adapter.data = self.root.adapter.data + res['listdir']
+        self.root._reset_spopulate()
 
     def on_stop(self):
         pass

@@ -1,3 +1,16 @@
+#:import sla kivy.adapters.simplelistadapter
+
+[DirentryListItem@SelectableView+BoxLayout]:
+    size_hint_y: None
+    height: root.width / 3
+    ListItemButton:
+        text: ctx.text
+        is_selected: False
+
 ListView:
 	id: lv
-	item_strings: []
+	adapter:
+		sla.SimpleListAdapter(
+		data = ["uno", "dos"],
+		args_converter = lambda row_index, rec: {'text': rec},
+		template='DirentryListItem')
