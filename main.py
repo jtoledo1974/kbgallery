@@ -100,11 +100,13 @@ class KBGalleryApp(App):
 
         # Load root directory
         UrlRequest(self.config.get('general', 'server_url'),
-                         on_success=self.got_dirlist, debug=True)
+                   on_success=self.got_dirlist, debug=True)
 
     def got_dirlist(self, req, res):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
-        self.root.adapter.data = self.root.adapter.data + res['listdir']
+        ld = res['listdir']
+        data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
+        self.root.adapter.data = self.root.adapter.data + data
         self.root._reset_spopulate()
 
     def on_stop(self):

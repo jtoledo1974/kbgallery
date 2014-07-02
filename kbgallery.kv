@@ -1,19 +1,25 @@
-#:import sla kivy.adapters.simplelistadapter
+#:import la kivy.adapters.listadapter
+
+<DLILabel@Label>:
+    text_size: (160, 160)
 
 [DirentryListItem@SelectableView+BoxLayout]:
     size_hint_y: None
-    height: 160
-    Label:
-        text: ctx.text
-    Label:
-        text: "%s" % str(self.parent.height)
-    Label:
-        text: "%s" % str(root.width / 3)
+    height: 240
+    BoxLayout:
+        orientation: 'vertical'
+        DLILabel:
+            text: ctx.item1
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: "%s" % ctx.item2
+            text_size: (160, None)
 
 ListView:
     id: lv
     adapter:
-        sla.SimpleListAdapter(
-        data = ["uno", "dos"],
-        args_converter = lambda row_index, rec: {'text': rec},
+        la.ListAdapter(
+        data = [],
+        args_converter = lambda row_index, rec: {'item1': rec[0], 'item2': rec[1]},
         template='DirentryListItem')
