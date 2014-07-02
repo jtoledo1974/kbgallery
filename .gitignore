@@ -5,7 +5,7 @@
 *.txt
 *.txt.gz
 *.psd
-planilla.ini
+kbgallery.ini
 .kivy
 
 ######### Python
