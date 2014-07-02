@@ -1,20 +1,31 @@
 #:import la kivy.adapters.listadapter
 
-<DLILabel@Label>:
-    text_size: (160, 160)
+<Direntry@FloatLayout>:
+    text: 'default'
+    img_source: None
+    AsyncImage:
+        source: root.img_source
+    Label:
+        pos_hint: {'center_x': 0.5, 'y': 0}
+        text_size: (160, None)
+        text: root.text
+        size: self.texture_size
+        size_hint: (None, None)
+    Label:
+        pos_hint: {'center_x': 0.5, 'top': 1}
+        text_size: (160, None)
+        text: root.img_source or ""
+        size: self.texture_size
+        size_hint: (None, None)
 
-[DirentryListItem@SelectableView+BoxLayout]:
+
+[DirentryListRow@SelectableView+BoxLayout]:
     size_hint_y: None
     height: 240
-    BoxLayout:
-        orientation: 'vertical'
-        DLILabel:
-            text: ctx.item1
-    BoxLayout:
-        orientation: 'vertical'
-        Label:
-            text: "%s" % ctx.item2
-            text_size: (160, None)
+    Direntry:
+        text: ctx.item1
+    Direntry:
+        text: ctx.item2
 
 ListView:
     id: lv
@@ -22,4 +33,4 @@ ListView:
         la.ListAdapter(
         data = [],
         args_converter = lambda row_index, rec: {'item1': rec[0], 'item2': rec[1]},
-        template='DirentryListItem')
+        template='DirentryListRow')
