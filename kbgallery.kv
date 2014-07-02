@@ -1,10 +1,8 @@
 #:import la kivy.adapters.listadapter
 
-<Direntry@FloatLayout>:
+<Direntry@FloatLayout+AsyncImage>:
     text: 'default'
-    img_source: "http://localhost:8080/thumb.jpg"
-    Image:
-        source: root.img_source
+    source: None
     Label:
         pos_hint: {'center_x': 0.5, 'y': 0}
         text_size: (240, None)
@@ -14,7 +12,7 @@
     Label:
         pos_hint: {'center_x': 0.5, 'top': 1}
         text_size: (240, None)
-        text: root.img_source or ""
+        text: ""
         size: self.texture_size
         size_hint: (None, None)
 
@@ -24,10 +22,10 @@
     height: 240
     Direntry:
         text: ctx.dir1
-        img_source: 'http://localhost:8080/thumb.jpg'
+        source: 'http://localhost:8080/thumb.jpg'
     Direntry:
         text: ctx.dir2
-        img_source: 'http://localhost:8080/thumb.jpg'
+        source: 'http://localhost:8080/thumb.jpg'
 
 ListView:
     id: lv
