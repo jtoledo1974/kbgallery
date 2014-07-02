@@ -2,15 +2,18 @@
 
 [DirentryListItem@SelectableView+BoxLayout]:
     size_hint_y: None
-    height: root.width / 3
-    ListItemButton:
+    height: 160
+    Label:
         text: ctx.text
-        is_selected: False
+    Label:
+        text: "%s" % str(self.parent.height)
+    Label:
+        text: "%s" % str(root.width / 3)
 
 ListView:
-	id: lv
-	adapter:
-		sla.SimpleListAdapter(
-		data = ["uno", "dos"],
-		args_converter = lambda row_index, rec: {'text': rec},
-		template='DirentryListItem')
+    id: lv
+    adapter:
+        sla.SimpleListAdapter(
+        data = ["uno", "dos"],
+        args_converter = lambda row_index, rec: {'text': rec},
+        template='DirentryListItem')
