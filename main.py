@@ -106,6 +106,7 @@ class KBGalleryApp(App):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
         ld = res['listdir']
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
+        # import pdb; pdb.set_trace()
         self.root.adapter.data = self.root.adapter.data + data
         self.root._reset_spopulate()
 

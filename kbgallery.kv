@@ -2,18 +2,18 @@
 
 <Direntry@FloatLayout>:
     text: 'default'
-    img_source: None
-    AsyncImage:
+    img_source: "http://localhost:8080/thumb.jpg"
+    Image:
         source: root.img_source
     Label:
         pos_hint: {'center_x': 0.5, 'y': 0}
-        text_size: (160, None)
+        text_size: (240, None)
         text: root.text
         size: self.texture_size
         size_hint: (None, None)
     Label:
         pos_hint: {'center_x': 0.5, 'top': 1}
-        text_size: (160, None)
+        text_size: (240, None)
         text: root.img_source or ""
         size: self.texture_size
         size_hint: (None, None)
@@ -23,14 +23,16 @@
     size_hint_y: None
     height: 240
     Direntry:
-        text: ctx.item1
+        text: ctx.dir1
+        img_source: 'http://localhost:8080/thumb.jpg'
     Direntry:
-        text: ctx.item2
+        text: ctx.dir2
+        img_source: 'http://localhost:8080/thumb.jpg'
 
 ListView:
     id: lv
     adapter:
         la.ListAdapter(
         data = [],
-        args_converter = lambda row_index, rec: {'item1': rec[0], 'item2': rec[1]},
+        args_converter = lambda row_index, rec: {'dir1': rec[0]['dirname'], 'dir2': rec[1]['dirname'], 'thumb1': rec[0]['thumb'], 'thumb2': rec[1]['thumb']},
         template='DirentryListRow')
