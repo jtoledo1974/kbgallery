@@ -25,6 +25,7 @@ from kivy.uix.screenmanager import Screen, RiseInTransition, FallOutTransition, 
     SlideTransition, NoTransition
 from kivy.utils import get_color_from_hex
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
+from kivy.network.urlrequest import UrlRequest
 
 if platform == 'android':
     Logger.debug('KBGALLERY: Importando %s' % datetime.now())
@@ -51,17 +52,9 @@ class KBGalleryApp(App):
 
     def build_config(self, config):
         Logger.debug("%s: build_config %s " % (APP, datetime.now()))
-        # config.setdefaults('general', {
-        #     'nucleo': 'INDEFINIDO',
-        #     'margen_ejec': 10,
-        #     'margen_ayud': 5,
-        #     'sound_alarm': 1,
-        #     'vibration_alarm': 1,
-        #     'numero': 0,
-        #     's1': 'Sector1',
-        #     's2': 'Sector2',
-        #     's3': 'Sector3',
-        #     'alarmas': b64encode(dumps({}))})
+        config.setdefaults('general', {
+            'server_url': 'http://localhost:8080/',
+        })
 
     def build_settings(self, settings):
         Logger.debug("%s: build_settings %s " % (APP, datetime.now()))
@@ -105,13 +98,14 @@ class KBGalleryApp(App):
             # arrancada. Para no duplicar código la llamamos desde aquí
             self.on_new_intent(activity.getIntent())
 
-        self.i = 0
+        # Load root directory
+        UrlRequest(self.config.get('general', 'server_url'),
+                         on_success=self.got_dirlist, debug=True)
 
-        Clock.schedule_interval(self.add_item, 0.2)
-
-    def add_item(self, *args):
-        self.root.item_strings.append(str(self.i))
-        self.i += 1
+    def got_dirlist(self, req, res):
+        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+        for d in res['listdir']:
+            self.root.item_strings.append(d)
 
     def on_stop(self):
         pass
