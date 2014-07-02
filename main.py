@@ -105,6 +105,14 @@ class KBGalleryApp(App):
             # arrancada. Para no duplicar código la llamamos desde aquí
             self.on_new_intent(activity.getIntent())
 
+        self.i = 0
+
+        Clock.schedule_interval(self.add_item, 0.2)
+
+    def add_item(self, *args):
+        self.root.item_strings.append(str(self.i))
+        self.i += 1
+
     def on_stop(self):
         pass
 
