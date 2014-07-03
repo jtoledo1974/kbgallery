@@ -22,15 +22,15 @@
     height: 240
     Direntry:
         text: ctx.dir1
-        source: 'http://localhost:8080/thumb.jpg'
+        source: ctx.thumb1
     Direntry:
         text: ctx.dir2
-        source: 'http://localhost:8080/thumb.jpg'
+        source: ctx.thumb2
 
 ListView:
     id: lv
     adapter:
         la.ListAdapter(
         data = [],
-        args_converter = lambda row_index, rec: {'dir1': rec[0]['dirname'], 'dir2': rec[1]['dirname'], 'thumb1': rec[0]['thumb'], 'thumb2': rec[1]['thumb']},
+        args_converter = lambda row_index, rec: {'dir1': rec[0]['direntry'], 'dir2': rec[1]['direntry'], 'thumb1': rec[0]['thumb_url'], 'thumb2': rec[1]['thumb_url']},
         template='DirentryListRow')
