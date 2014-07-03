@@ -1,8 +1,26 @@
 #:import la kivy.adapters.listadapter
 
-<Direntry@FloatLayout+AsyncImage>:
+<RotImage>:
+    angle: 0
+    orientation: 1
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle:root.angle
+            axis: 0, 0, 1
+            origin: root.center
+    canvas.after:
+        PopMatrix
+
+<Direntry@FloatLayout>:
     text: 'default'
     source: None
+    orientation: 1
+    RotImage:
+        x: root.x
+        y: root.y
+        source: root.source
+        orientation: root.orientation
     Label:
         pos_hint: {'center_x': 0.5, 'y': 0}
         text_size: (240, None)
@@ -12,7 +30,7 @@
     Label:
         pos_hint: {'center_x': 0.5, 'top': 1}
         text_size: (240, None)
-        text: ""
+        text: str(root.orientation)
         size: self.texture_size
         size_hint: (None, None)
 
@@ -23,14 +41,16 @@
     Direntry:
         text: ctx.dir1
         source: ctx.thumb1
+        orientation: ctx.orientation1
     Direntry:
         text: ctx.dir2
         source: ctx.thumb2
+        orientation: ctx.orientation2
 
 ListView:
     id: lv
     adapter:
         la.ListAdapter(
         data = [],
-        args_converter = lambda row_index, rec: {'dir1': rec[0]['direntry'], 'dir2': rec[1]['direntry'], 'thumb1': rec[0]['thumb_url'], 'thumb2': rec[1]['thumb_url']},
+        args_converter = lambda row_index, rec: {'dir1': rec[0]['direntry'], 'dir2': rec[1]['direntry'], 'thumb1': rec[0]['thumb_url'], 'thumb2': rec[1]['thumb_url'], 'orientation1': rec[0]['orientation'], 'orientation2': rec[1]['orientation']},
         template='DirentryListRow')

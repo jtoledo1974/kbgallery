@@ -44,6 +44,14 @@ if platform == 'win' or platform == 'linux':
 APP = 'KBGALLERY'
 
 
+class RotImage(AsyncImage):
+    angle = NumericProperty(0)
+    orientation = NumericProperty(1)
+
+    def on_orientation(self, widget, value):
+        self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
+
+
 class KBGalleryApp(App):
 
     def build(self):
@@ -74,6 +82,7 @@ class KBGalleryApp(App):
     def on_keypress(self, window, keycode1, keycode2, text, modifiers):
         # Logger.debug("%s: on_keypress k1: %s, k2: %s, text: %s, mod: %s" % (
         #     APP, keycode1, keycode2, text, modifiers))
+
         if keycode1 in [27, 1001]:
             if self._app_settings in self._app_window.children:
                 self.close_settings()
@@ -107,8 +116,10 @@ class KBGalleryApp(App):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
 
         turl = self.config.get('general', 'server_url')+'thumb/'
-        ld = [{'direntry': de, 'thumb_url': turl+quote(de)}
-              for de in res['listdir']]
+        ld = [{'direntry': de,
+               'thumb_url': turl+quote(de),
+               'orientation': orientation}
+              for (de, orientation) in res['listdir']]
 
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
         self.root.adapter.data = self.root.adapter.data + data
