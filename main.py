@@ -5,6 +5,7 @@ from datetime import datetime, time, timedelta
 from copy import copy
 from functools import partial
 from pprint import pformat
+from urllib import quote
 
 from kivy.app import App
 from kivy.config import Config
@@ -106,7 +107,7 @@ class KBGalleryApp(App):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
 
         turl = self.config.get('general', 'server_url')+'thumb/'
-        ld = [{'direntry': de, 'thumb_url': turl+de}
+        ld = [{'direntry': de, 'thumb_url': turl+quote(de)}
               for de in res['listdir']]
 
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
