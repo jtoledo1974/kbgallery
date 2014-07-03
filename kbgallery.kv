@@ -12,10 +12,11 @@
     canvas.after:
         PopMatrix
 
-<Direntry@FloatLayout>:
+<Direntry@ButtonBehavior+FloatLayout>:
     text: 'default'
     source: None
     orientation: 1
+    on_release: app.on_direntry_selected(self.text) or True
     RotImage:
         x: root.x
         y: root.y
@@ -34,8 +35,7 @@
         size: self.texture_size
         size_hint: (None, None)
 
-
-[DirentryListRow@SelectableView+BoxLayout]:
+[DirentryListRow@BoxLayout]:
     size_hint_y: None
     height: 240
     Direntry:
@@ -53,4 +53,6 @@ ListView:
         la.ListAdapter(
         data = [],
         args_converter = lambda row_index, rec: {'dir1': rec[0]['direntry'], 'dir2': rec[1]['direntry'], 'thumb1': rec[0]['thumb_url'], 'thumb2': rec[1]['thumb_url'], 'orientation1': rec[0]['orientation'], 'orientation2': rec[1]['orientation']},
-        template='DirentryListRow')
+        template='DirentryListRow',
+        selection_mode = 'none'
+        )

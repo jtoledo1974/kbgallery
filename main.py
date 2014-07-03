@@ -14,6 +14,7 @@ from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.uix.image import AsyncImage
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.behaviors import ButtonBehavior
 from kivy import platform
 from kivy.logger import Logger
 from kivy.clock import Clock
@@ -124,6 +125,9 @@ class KBGalleryApp(App):
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
         self.root.adapter.data = self.root.adapter.data + data
         self.root._reset_spopulate()
+
+    def on_direntry_selected(self, *args):
+        Logger.debug("%s: on_direntry_selected %s" % (APP, args))
 
     def on_stop(self):
         pass
