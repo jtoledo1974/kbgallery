@@ -1,33 +1,14 @@
 # -*- coding: utf-8 -*-
-from pickle import dumps
-from base64 import b64encode, b64decode
-from datetime import datetime, time, timedelta
-from copy import copy
-from functools import partial
-from pprint import pformat
+from datetime import datetime
 from urllib import quote
 
 from kivy.app import App
 from kivy.config import Config
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.image import Image
 from kivy.uix.image import AsyncImage
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.listview import ListView
 from kivy.adapters.listadapter import ListAdapter
 from kivy import platform
 from kivy.logger import Logger
-from kivy.clock import Clock
-from kivy.uix.popup import Popup
-from kivy.animation import Animation
-from kivy.vector import Vector
-from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line, Rectangle
-from kivy.uix.screenmanager import Screen, RiseInTransition, FallOutTransition, \
-    SlideTransition, NoTransition
-from kivy.utils import get_color_from_hex
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.network.urlrequest import UrlRequest
 
