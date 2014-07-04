@@ -131,7 +131,9 @@ class KBGalleryApp(App):
             python_activity.bind(on_new_intent=self.on_new_intent)
             self.on_new_intent(activity.getIntent())
 
-        self.dirlist = Dirlist(root=self.config.get('general', 'server_url'))
+        self.server_url = self.config.get('general', 'server_url')
+        # self.server_url = 'http://192.168.1.40:8888/'
+        self.dirlist = Dirlist(root=self.server_url)
         self.root.add_widget(self.dirlist)
 
     def direntry_selected(self, direntry):
@@ -139,7 +141,7 @@ class KBGalleryApp(App):
 
         self.root.remove_widget(self.dirlist)
         self.previous = self.dirlist
-        self.dirlist = Dirlist(root=self.config.get('general', 'server_url'),
+        self.dirlist = Dirlist(root=self.server_url,
                                path=direntry+'/')
         self.root.add_widget(self.dirlist)
         self.root.with_previous = True
