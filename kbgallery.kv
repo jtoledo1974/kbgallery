@@ -16,7 +16,7 @@
     text: 'default'
     source: None
     orientation: 1
-    on_release: app.on_direntry_selected(self.text) or True
+    on_release: app.direntry_selected(self.text)
     RotImage:
         x: root.x
         y: root.y
@@ -47,12 +47,25 @@
         source: ctx.thumb2
         orientation: ctx.orientation2
 
-ListView:
-    id: lv
-    adapter:
-        la.ListAdapter(
-        data = [],
-        args_converter = lambda row_index, rec: {'dir1': rec[0]['direntry'], 'dir2': rec[1]['direntry'], 'thumb1': rec[0]['thumb_url'], 'thumb2': rec[1]['thumb_url'], 'orientation1': rec[0]['orientation'], 'orientation2': rec[1]['orientation']},
-        template='DirentryListRow',
-        selection_mode = 'none'
-        )
+BoxLayout:
+    orientation: "vertical"
+    with_previous: False
+    ActionBar:
+        height: "48dp"
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                app_icon: 'data/icon.png'
+                title: 'Planilla'
+                with_previous: root.with_previous
+                on_release: app.load_previous()
+            ActionOverflow:
+                ActionButton:
+                    text: "Preferencias"
+                    on_release: app.open_settings()
+                ActionButton:
+                    text: "Log"
+                    on_release: app.send_log()
+                ActionButton:
+                    text: "Acerca de"
+                    on_release: app.about()

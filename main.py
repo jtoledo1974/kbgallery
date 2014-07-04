@@ -15,6 +15,8 @@ from kivy.uix.image import Image
 from kivy.uix.image import AsyncImage
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.listview import ListView
+from kivy.adapters.listadapter import ListAdapter
 from kivy import platform
 from kivy.logger import Logger
 from kivy.clock import Clock
@@ -51,6 +53,47 @@ class RotImage(AsyncImage):
 
     def on_orientation(self, widget, value):
         self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
+
+
+class Dirlist(ListView):
+
+    def __init__(self, root="", path="", **kwargs):
+
+        self.root = root
+        self.path = path
+
+        def args_converter(row_index, rec):
+            return {'dir1': rec[0]['direntry'],
+                    'dir2': rec[1]['direntry'],
+                    'thumb1': rec[0]['thumb_url'],
+                    'thumb2': rec[1]['thumb_url'],
+                    'orientation1': rec[0]['orientation'],
+                    'orientation2': rec[1]['orientation']}
+
+        self.adapter = adapter = ListAdapter(
+            data=[],
+            args_converter=args_converter,
+            template='DirentryListRow',
+            selection_mode='none'
+            )
+
+        super(ListView, self).__init__(adapter=adapter, **kwargs)
+
+        UrlRequest(root+path,
+                   on_success=self.got_dirlist, debug=True)
+
+    def got_dirlist(self, req, res):
+        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+
+        turl = self.root + '/'.join(('thumb', res['dir']))
+        ld = [{'direntry': de,
+               'thumb_url': turl+quote(de),
+               'orientation': orientation}
+              for (de, orientation) in res['listdir']]
+
+        data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
+        self.adapter.data = self.adapter.data + data
+        self._reset_spopulate()
 
 
 class KBGalleryApp(App):
@@ -105,29 +148,26 @@ class KBGalleryApp(App):
 
             import android.activity as python_activity
             python_activity.bind(on_new_intent=self.on_new_intent)
-            # on_new_intent sólo se llama cuando la aplicación ya está
-            # arrancada. Para no duplicar código la llamamos desde aquí
             self.on_new_intent(activity.getIntent())
 
-        # Load root directory
-        UrlRequest(self.config.get('general', 'server_url'),
-                   on_success=self.got_dirlist, debug=True)
+        self.dirlist = Dirlist(root=self.config.get('general', 'server_url'))
+        self.root.add_widget(self.dirlist)
 
-    def got_dirlist(self, req, res):
-        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+    def direntry_selected(self, direntry):
+        Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
 
-        turl = self.config.get('general', 'server_url')+'thumb/'
-        ld = [{'direntry': de,
-               'thumb_url': turl+quote(de),
-               'orientation': orientation}
-              for (de, orientation) in res['listdir']]
+        self.root.remove_widget(self.dirlist)
+        self.previous = self.dirlist
+        self.dirlist = Dirlist(root=self.config.get('general', 'server_url'),
+                               path=direntry+'/')
+        self.root.add_widget(self.dirlist)
+        self.root.with_previous = True
 
-        data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
-        self.root.adapter.data = self.root.adapter.data + data
-        self.root._reset_spopulate()
-
-    def on_direntry_selected(self, *args):
-        Logger.debug("%s: on_direntry_selected %s" % (APP, args))
+    def load_previous(self):
+        self.root.remove_widget(self.dirlist)
+        self.root.add_widget(self.previous)
+        self.dirlist = self.previous
+        self.root.with_previous = False
 
     def on_stop(self):
         pass
