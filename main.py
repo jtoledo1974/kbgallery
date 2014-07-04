@@ -60,7 +60,7 @@ class Dirlist(ListView):
 
         super(ListView, self).__init__(adapter=adapter, **kwargs)
 
-        UrlRequest(root+path,
+        UrlRequest((root+path).encode('utf-8'),
                    on_success=self.got_dirlist, debug=True)
 
     def got_dirlist(self, req, res):
@@ -68,7 +68,7 @@ class Dirlist(ListView):
 
         turl = self.root + '/'.join(('thumb', res['dir']))
         ld = [{'direntry': de,
-               'thumb_url': turl+quote(de),
+               'thumb_url': turl+quote(de.encode('utf-8')),
                'orientation': orientation}
               for (de, orientation) in res['listdir']]
 
