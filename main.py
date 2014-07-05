@@ -60,7 +60,7 @@ class Dirlist(ListView):
 
         super(ListView, self).__init__(adapter=adapter, **kwargs)
 
-        UrlRequest((root+path).encode('utf-8'),
+        UrlRequest(root+quote((path).encode('utf-8')),
                    on_success=self.got_dirlist, debug=True)
 
     def got_dirlist(self, req, res):
@@ -139,6 +139,10 @@ class KBGalleryApp(App):
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
+
+        # TODO Cancelar los requests anteriores si posible
+        # El servidor se puede quedar pillado haciendo thumbnails
+        # antes de responder al cambio de directorio
 
         self.root.remove_widget(self.dirlist)
         self.navigation.append(self.dirlist)
