@@ -36,6 +36,10 @@ class RotImage(AsyncImage):
     def on_orientation(self, widget, value):
         self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
 
+    def _on_source_load(self, value):
+        super(RotImage, self)._on_source_load(value)
+        self.allow_stretch = True
+
 
 class Dirlist(ListView):
 
@@ -59,7 +63,7 @@ class Dirlist(ListView):
             selection_mode='none'
             )
 
-        super(ListView, self).__init__(adapter=adapter, **kwargs)
+        super(Dirlist, self).__init__(adapter=adapter, **kwargs)
 
         UrlRequest(root+quote((path).encode('utf-8')),
                    on_success=self.got_dirlist, debug=True)
