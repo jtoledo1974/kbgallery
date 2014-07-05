@@ -132,25 +132,28 @@ class KBGalleryApp(App):
             self.on_new_intent(activity.getIntent())
 
         self.server_url = self.config.get('general', 'server_url')
-        # self.server_url = 'http://192.168.1.40:8888/'
-        self.dirlist = Dirlist(root=self.server_url)
-        self.root.add_widget(self.dirlist)
+        self.server_url = 'http://192.168.1.40:8888/'
+        self.dirlist = dirlist = Dirlist(root=self.server_url)
+        self.navigation = []
+        self.root.add_widget(dirlist)
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
 
         self.root.remove_widget(self.dirlist)
-        self.previous = self.dirlist
+        self.navigation.append(self.dirlist)
         self.dirlist = Dirlist(root=self.server_url,
-                               path=direntry+'/')
+                               path=self.dirlist.path+direntry+'/')
         self.root.add_widget(self.dirlist)
         self.root.with_previous = True
 
     def load_previous(self):
         self.root.remove_widget(self.dirlist)
-        self.root.add_widget(self.previous)
-        self.dirlist = self.previous
-        self.root.with_previous = False
+        previous = self.navigation.pop(-1)
+        self.root.add_widget(previous)
+        self.dirlist = previous
+        if not len(self.navigation):
+            self.root.with_previous = False
 
     def on_stop(self):
         pass

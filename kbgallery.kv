@@ -58,7 +58,7 @@ BoxLayout:
                 app_icon: 'data/icon.png'
                 title: 'Planilla'
                 with_previous: root.with_previous
-                on_release: app.load_previous()
+                on_release: root.with_previous and app.load_previous()
             ActionOverflow:
                 ActionButton:
                     text: "Preferencias"
