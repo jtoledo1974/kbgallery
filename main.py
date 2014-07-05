@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from urllib import quote
+from posixpath import join as urljoin
 
 from kivy.app import App
 from kivy.config import Config
@@ -66,9 +67,10 @@ class Dirlist(ListView):
     def got_dirlist(self, req, res):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
 
-        turl = self.root + '/'.join(('thumb', res['dir']))
+        turl = self.root + urljoin('thumb',
+                                   quote(res['dir'].encode('utf-8')))
         ld = [{'direntry': de,
-               'thumb_url': turl+quote(de.encode('utf-8')),
+               'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                'orientation': orientation}
               for (de, orientation) in res['listdir']]
 
