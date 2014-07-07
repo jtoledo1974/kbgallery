@@ -2,6 +2,7 @@
 from datetime import datetime
 from urllib import quote
 from posixpath import join as urljoin
+from json import loads
 
 from kivy.app import App
 from kivy.config import Config
@@ -48,6 +49,8 @@ class Dirlist(ListView):
         self.root = root
         self.path = path
 
+        self.direntries = []
+
         def args_converter(row_index, rec):
             return {'dir1': rec[0]['direntry'],
                     'dir2': rec[1]['direntry'],
@@ -71,12 +74,25 @@ class Dirlist(ListView):
     def got_dirlist(self, req, res):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
 
+        direntries = []
+        for l in res.split("\n"):
+            try:
+                d = loads(l)
+                try:
+                    self.dir = d['dir']
+                except:
+                    if d not in self.direntries:
+                        direntries.append(d)
+                        self.direntries.append(d)
+            except:
+                pass
+
         turl = self.root + urljoin('thumb',
-                                   quote(res['dir'].encode('utf-8')))
+                                   quote(self.dir.encode('utf-8')))
         ld = [{'direntry': de,
                'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                'orientation': orientation}
-              for (de, orientation) in res['listdir']]
+              for (de, orientation) in direntries]
 
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
         self.adapter.data = self.adapter.data + data
