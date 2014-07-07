@@ -28,6 +28,8 @@ if platform == 'win' or platform == 'linux':
     Config.set('graphics', 'height', 756)
 
 APP = 'KBGALLERY'
+DIR = 'dir'
+FILE = 'file'
 
 
 class RotImage(AsyncImage):
@@ -92,7 +94,7 @@ class Dirlist(ListView):
         ld = [{'direntry': de,
                'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                'orientation': orientation}
-              for (de, orientation) in direntries]
+              for (de, orientation, file_type) in direntries]
 
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
         self.adapter.data = self.adapter.data + data
