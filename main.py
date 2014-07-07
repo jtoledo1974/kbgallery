@@ -7,6 +7,7 @@ from json import loads
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.image import AsyncImage
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.listview import ListView
 from kivy.adapters.listadapter import ListAdapter
 from kivy import platform
@@ -44,6 +45,18 @@ class RotImage(AsyncImage):
         self.allow_stretch = True
 
 
+class DirlistRow(BoxLayout):
+    dir1 = StringProperty()
+    dir2 = StringProperty()
+    thumb1 = StringProperty()
+    thumb2 = StringProperty()
+    orientation1 = NumericProperty(1)
+    orientation2 = NumericProperty(1)
+
+    def __init__(self, **kwargs):
+        super(DirlistRow, self).__init__(**kwargs)
+
+
 class Dirlist(ListView):
 
     def __init__(self, root="", path="", **kwargs):
@@ -64,7 +77,7 @@ class Dirlist(ListView):
         self.adapter = adapter = ListAdapter(
             data=[],
             args_converter=args_converter,
-            template='DirentryListRow',
+            cls=DirlistRow,
             selection_mode='none'
             )
 
@@ -94,7 +107,9 @@ class Dirlist(ListView):
         ld = [{'direntry': de,
                'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                'orientation': orientation}
-              for (de, orientation, file_type) in direntries]
+              for (de, orientation, file_type) in direntries
+              # if file_type == DIR]
+              ]
 
         data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
         self.adapter.data = self.adapter.data + data
@@ -156,10 +171,10 @@ class KBGalleryApp(App):
             self.on_new_intent(activity.getIntent())
 
         self.server_url = self.config.get('general', 'server_url')
-        self.server_url = 'http://192.168.1.40:8888/'
+        self.server_url = 'http://localhost:8888/'
         self.dirlist = dirlist = Dirlist(root=self.server_url)
         self.navigation = []
-        self.root.add_widget(dirlist)
+        self.root.content.add_widget(dirlist)
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
@@ -168,17 +183,17 @@ class KBGalleryApp(App):
         # El servidor se puede quedar pillado haciendo thumbnails
         # antes de responder al cambio de directorio
 
-        self.root.remove_widget(self.dirlist)
+        self.root.content.remove_widget(self.dirlist)
         self.navigation.append(self.dirlist)
         self.dirlist = Dirlist(root=self.server_url,
                                path=self.dirlist.path+direntry+'/')
-        self.root.add_widget(self.dirlist)
+        self.root.content.add_widget(self.dirlist)
         self.root.with_previous = True
 
     def load_previous(self):
-        self.root.remove_widget(self.dirlist)
+        self.root.content.remove_widget(self.dirlist)
         previous = self.navigation.pop(-1)
-        self.root.add_widget(previous)
+        self.root.content.add_widget(previous)
         self.dirlist = previous
         if not len(self.navigation):
             self.root.with_previous = False

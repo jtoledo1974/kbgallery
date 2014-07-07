@@ -35,23 +35,25 @@
         size: self.texture_size
         size_hint: (None, None)
 
-[DirentryListRow@BoxLayout]:
+<DirlistRow>:
     size_hint_y: None
     height: 240
     Direntry:
-        text: ctx.dir1
-        source: ctx.thumb1
-        orientation: ctx.orientation1
+        text: root.dir1
+        source: root.thumb1
+        orientation: root.orientation1
     Direntry:
-        text: ctx.dir2
-        source: ctx.thumb2
-        orientation: ctx.orientation2
+        text: root.dir2
+        source: root.thumb2
+        orientation: root.orientation2
 
 BoxLayout:
     orientation: "vertical"
     with_previous: False
+    content: content
     ActionBar:
         height: "48dp"
+        pos_hint: {'x': 0, 'top':1}
         ActionView:
             use_separator: True
             ActionPrevious:
@@ -69,3 +71,5 @@ BoxLayout:
                 ActionButton:
                     text: "Acerca de"
                     on_release: app.about()
+    FloatLayout:
+        id: content
