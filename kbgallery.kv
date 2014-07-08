@@ -85,13 +85,16 @@ BoxLayout:
                 on_release: root.with_previous and app.load_previous()
             ActionOverflow:
                 ActionButton:
-                    text: "Preferencias"
+                    text: "Settings"
                     on_release: app.open_settings()
                 ActionButton:
                     text: "Log"
                     on_release: app.send_log()
                 ActionButton:
-                    text: "Acerca de"
+                    text: "Exit"
+                    on_release: app.stop()
+                ActionButton:
+                    text: "About"
                     on_release: app.about()
     FloatLayout:
         id: container

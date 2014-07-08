@@ -18,11 +18,12 @@ from kivy.network.urlrequest import UrlRequest
 if platform == 'android':
     Logger.debug('KBGALLERY: Importando %s' % datetime.now())
     import android
-    from plyer.platforms.android import activity
     from jnius import autoclass, cast
     from android.runnable import run_on_ui_thread
     Intent = autoclass('android.content.Intent')
     String = autoclass('java.lang.String')
+    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    activity = PythonActivity.mActivity
 
 if platform == 'win' or platform == 'linux':
     Config.set('graphics', 'width', 480)
@@ -31,6 +32,7 @@ if platform == 'win' or platform == 'linux':
 APP = 'KBGALLERY'
 DIR = 'dir'
 FILE = 'file'
+__version__ = "0.0.1"
 
 
 def pad_modulo(list, padding, modulo):
@@ -137,12 +139,12 @@ class KBGalleryApp(App):
     def build_config(self, config):
         Logger.debug("%s: build_config %s " % (APP, datetime.now()))
         config.setdefaults('general', {
-            'server_url': 'http://localhost:8080/',
+            'server_url': 'http://www.lazaro.es:8888/',
         })
 
     def build_settings(self, settings):
         Logger.debug("%s: build_settings %s " % (APP, datetime.now()))
-        # settings.add_json_panel('Planilla', self.config, 'settings.json')
+        settings.add_json_panel('KBGallery', self.config, 'settings.json')
 
     def on_pause(self):
         return True
@@ -182,7 +184,6 @@ class KBGalleryApp(App):
             self.on_new_intent(activity.getIntent())
 
         self.server_url = self.config.get('general', 'server_url')
-        self.server_url = 'http://localhost:8888/'
         self.navigation = []
 
         # Currently displayed content widget (dirlist, imglist)

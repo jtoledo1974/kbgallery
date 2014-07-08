@@ -1,0 +1,15 @@
+[
+    {
+        "type": "title",
+        "title": "General"
+    },
+    {
+        "type": "options",
+        "title": "Server Address",
+        "desc": "URL of the server gallery",
+        "section": "general",
+        "key": "server_url",
+		"options": ["http://www.lazaro.es:8888/", "http://localhost:8888/", "http://192.168.1.40:8888/"],
+        "optionsback": ["uno", "dos"]
+    }
+]
