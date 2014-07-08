@@ -33,6 +33,14 @@ DIR = 'dir'
 FILE = 'file'
 
 
+def pad_modulo(list, padding, modulo):
+    length_modulo = len(list) % modulo
+    if length_modulo in (0, modulo):
+        return list
+    else:
+        return list + padding * (modulo - length_modulo)
+
+
 class RotImage(AsyncImage):
     angle = NumericProperty(0)
     orientation = NumericProperty(1)
@@ -220,6 +228,8 @@ class KBGalleryApp(App):
                    'orientation': orientation}
                   for (de, orientation, file_type) in directories
                   ]
+            ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
+                                 'orientation': 1}], 2)
 
             data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
             dirlist.adapter.data = data
@@ -236,8 +246,10 @@ class KBGalleryApp(App):
                    'orientation': orientation}
                   for (de, orientation, file_type) in files
                   ]
+            ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
+                                 'orientation': 1}], 3)
 
-            data = [(ld[i*2], ld[i*3+1], ld[i*3+2]) for i in range(len(ld)/3)]
+            data = [(ld[i*3], ld[i*3+1], ld[i*3+2]) for i in range(len(ld)/3)]
             imglist.adapter.data = data
             imglist._reset_spopulate()
 
