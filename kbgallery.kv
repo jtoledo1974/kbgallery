@@ -71,7 +71,7 @@
 BoxLayout:
     orientation: "vertical"
     with_previous: False
-    content: content
+    container: container
     ActionBar:
         height: "48dp"
         pos_hint: {'x': 0, 'top':1}
@@ -93,4 +93,4 @@ BoxLayout:
                     text: "Acerca de"
                     on_release: app.about()
     FloatLayout:
-        id: content
+        id: container

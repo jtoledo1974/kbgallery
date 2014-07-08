@@ -225,7 +225,7 @@ class KBGalleryApp(App):
             dirlist.adapter.data = data
             dirlist._reset_spopulate()
 
-            self.root.content.add_widget(dirlist)
+            self.root.container.add_widget(dirlist)
             self.content = dirlist
 
         elif len(files):
@@ -241,7 +241,7 @@ class KBGalleryApp(App):
             imglist.adapter.data = data
             imglist._reset_spopulate()
 
-            self.root.content.add_widget(imglist)
+            self.root.container.add_widget(imglist)
             self.content = imglist
 
     def direntry_selected(self, direntry):
@@ -251,7 +251,7 @@ class KBGalleryApp(App):
         # El servidor se puede quedar pillado haciendo thumbnails
         # antes de responder al cambio de directorio
 
-        self.root.content.remove_widget(self.content)
+        self.root.container.remove_widget(self.content)
         self.navigation.append(self.content)
         self.fetch_dir(path=urljoin(self.content.path, direntry, ''))
         self.root.with_previous = True
@@ -263,15 +263,15 @@ class KBGalleryApp(App):
         # El servidor se puede quedar pillado haciendo thumbnails
         # antes de responder al cambio de directorio
 
-        # self.root.content.remove_widget(self.dirlist)
+        # self.root.container.remove_widget(self.dirlist)
         # self.navigation.append(self.dirlist)
         # self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
         # self.root.with_previous = True
 
     def load_previous(self):
-        self.root.content.remove_widget(self.content)
+        self.root.container.remove_widget(self.content)
         previous = self.navigation.pop(-1)
-        self.root.content.add_widget(previous)
+        self.root.container.add_widget(previous)
         self.content = previous
 
         if not len(self.navigation):
