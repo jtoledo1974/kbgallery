@@ -223,13 +223,20 @@ class KBGalleryApp(App):
         turl = self.server_url + urljoin('thumb',
                                          quote(sdir.encode('utf-8')))
         if len(directories):
+            listing = directories
+        elif len(files):
+            listing = files
+        else:
+            listing = []
+
+        ld = [{'direntry': de,
+               'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
+               'orientation': orientation}
+              for (de, orientation, file_type) in listing]
+
+        if len(directories):
             dirlist = Dirlist(root=self.server_url, path=self._path)
 
-            ld = [{'direntry': de,
-                   'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
-                   'orientation': orientation}
-                  for (de, orientation, file_type) in directories
-                  ]
             ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
                                  'orientation': 1}], 2)
 
@@ -243,11 +250,6 @@ class KBGalleryApp(App):
         elif len(files):
             imglist = Imglist(root=self.server_url, path=self._path)
 
-            ld = [{'direntry': de,
-                   'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
-                   'orientation': orientation}
-                  for (de, orientation, file_type) in files
-                  ]
             ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
                                  'orientation': 1}], 3)
 
