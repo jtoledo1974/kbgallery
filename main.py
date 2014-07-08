@@ -248,7 +248,7 @@ class KBGalleryApp(App):
             return
 
         ld = [{'direntry': de,
-               'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
+               'thumb_url': urljoin(turl, quote(de.encode('utf-8')+'.jpg')),
                'orientation': orientation}
               for (de, orientation, file_type) in listing]
         ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
