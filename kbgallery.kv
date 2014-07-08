@@ -48,6 +48,26 @@
         orientation: root.orientation2
         on_release: app.direntry_selected(root.dir2)
 
+<ImglistRow>:
+    size_hint_y: None
+    height: 160
+    Direntry:
+        text: root.f1
+        source: root.t1
+        orientation: root.o1
+        on_release: app.img_selected(root.f1)
+    Direntry:
+        text: root.f2
+        source: root.t2
+        orientation: root.o2
+        on_release: app.img_selected(root.f2)
+    Direntry:
+        text: root.f3
+        source: root.t3
+        orientation: root.o3
+        on_release: app.img_selected(root.f3)
+
+
 BoxLayout:
     orientation: "vertical"
     with_previous: False

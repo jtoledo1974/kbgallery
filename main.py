@@ -67,12 +67,12 @@ class Imglist(ListView):
             return {'f1': rec[0]['direntry'],
                     'f2': rec[1]['direntry'],
                     'f3': rec[2]['direntry'],
-                    't1': rec[0]['direntry'],
-                    't2': rec[1]['direntry'],
-                    't3': rec[2]['direntry'],
-                    'o1': rec[0]['direntry'],
-                    'o2': rec[1]['direntry'],
-                    'o3': rec[2]['direntry'],
+                    't1': rec[0]['thumb_url'],
+                    't2': rec[1]['thumb_url'],
+                    't3': rec[2]['thumb_url'],
+                    'o1': rec[0]['orientation'],
+                    'o2': rec[1]['orientation'],
+                    'o3': rec[2]['orientation'],
                     }
 
         self.adapter = adapter = ListAdapter(
@@ -176,10 +176,10 @@ class KBGalleryApp(App):
         self.server_url = 'http://localhost:8888/'
         self.navigation = []
 
-        # Currently displayed dirlist
+        # Currently displayed content widget (dirlist, imglist)
         self._path = ""        # The path under the server root of the dirlist
         self._direntries = []  # The direntries already received
-        self.dirlist = None   # The Dirlist widget currently displayed
+        self.content = None   # The Dirlist widget currently displayed
 
         self.fetch_dir(path='')
 
@@ -210,11 +210,11 @@ class KBGalleryApp(App):
         directories = [de for de in direntries if de[2] == DIR]
         files = [de for de in direntries if de[2] == FILE]
 
+        turl = self.server_url + urljoin('thumb',
+                                         quote(sdir.encode('utf-8')))
         if len(directories):
             dirlist = Dirlist(root=self.server_url, path=self._path)
 
-            turl = self.server_url + urljoin('thumb',
-                                             quote(sdir.encode('utf-8')))
             ld = [{'direntry': de,
                    'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                    'orientation': orientation}
@@ -226,7 +226,23 @@ class KBGalleryApp(App):
             dirlist._reset_spopulate()
 
             self.root.content.add_widget(dirlist)
-            self.dirlist = dirlist
+            self.content = dirlist
+
+        elif len(files):
+            imglist = Imglist(root=self.server_url, path=self._path)
+
+            ld = [{'direntry': de,
+                   'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
+                   'orientation': orientation}
+                  for (de, orientation, file_type) in files
+                  ]
+
+            data = [(ld[i*2], ld[i*3+1], ld[i*3+2]) for i in range(len(ld)/3)]
+            imglist.adapter.data = data
+            imglist._reset_spopulate()
+
+            self.root.content.add_widget(imglist)
+            self.content = imglist
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
@@ -235,16 +251,29 @@ class KBGalleryApp(App):
         # El servidor se puede quedar pillado haciendo thumbnails
         # antes de responder al cambio de directorio
 
-        self.root.content.remove_widget(self.dirlist)
-        self.navigation.append(self.dirlist)
-        self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
+        self.root.content.remove_widget(self.content)
+        self.navigation.append(self.content)
+        self.fetch_dir(path=urljoin(self.content.path, direntry, ''))
         self.root.with_previous = True
 
+    def img_selected(self, direntry):
+        Logger.debug("%s: on_img_selected %s" % (APP, direntry))
+
+        # TODO Cancelar los requests anteriores si posible
+        # El servidor se puede quedar pillado haciendo thumbnails
+        # antes de responder al cambio de directorio
+
+        # self.root.content.remove_widget(self.dirlist)
+        # self.navigation.append(self.dirlist)
+        # self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
+        # self.root.with_previous = True
+
     def load_previous(self):
-        self.root.content.remove_widget(self.dirlist)
+        self.root.content.remove_widget(self.content)
         previous = self.navigation.pop(-1)
         self.root.content.add_widget(previous)
-        self.dirlist = previous
+        self.content = previous
+
         if not len(self.navigation):
             self.root.with_previous = False
 
