@@ -45,6 +45,46 @@ class RotImage(AsyncImage):
         self.allow_stretch = True
 
 
+class ImglistRow(BoxLayout):
+    f1 = StringProperty()  # Filepath 1, 2, 3
+    f2 = StringProperty()
+    f3 = StringProperty()
+    t1 = StringProperty()  # Thumbpath 1, 2, 3
+    t2 = StringProperty()
+    t3 = StringProperty()
+    o1 = NumericProperty(1)  # Orientation 1, 2, 3
+    o2 = NumericProperty(1)
+    o3 = NumericProperty(1)
+
+
+class Imglist(ListView):
+
+    def __init__(self, root="", path="", **kwargs):
+
+        self.path = path
+
+        def args_converter(row_index, rec):
+            return {'f1': rec[0]['direntry'],
+                    'f2': rec[1]['direntry'],
+                    'f3': rec[2]['direntry'],
+                    't1': rec[0]['direntry'],
+                    't2': rec[1]['direntry'],
+                    't3': rec[2]['direntry'],
+                    'o1': rec[0]['direntry'],
+                    'o2': rec[1]['direntry'],
+                    'o3': rec[2]['direntry'],
+                    }
+
+        self.adapter = adapter = ListAdapter(
+            data=[],
+            args_converter=args_converter,
+            cls=ImglistRow,
+            selection_mode='none'
+            )
+
+        super(Imglist, self).__init__(adapter=adapter, **kwargs)
+
+
 class DirlistRow(BoxLayout):
     dir1 = StringProperty()
     dir2 = StringProperty()
@@ -52,9 +92,6 @@ class DirlistRow(BoxLayout):
     thumb2 = StringProperty()
     orientation1 = NumericProperty(1)
     orientation2 = NumericProperty(1)
-
-    def __init__(self, **kwargs):
-        super(DirlistRow, self).__init__(**kwargs)
 
 
 class Dirlist(ListView):
