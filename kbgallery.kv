@@ -13,10 +13,9 @@
         PopMatrix
 
 <Direntry@ButtonBehavior+FloatLayout>:
-    text: 'default'
+    text: ''
     source: None
     orientation: 1
-    on_release: app.direntry_selected(self.text)
     RotImage:
         x: root.x
         y: root.y
@@ -24,13 +23,13 @@
         orientation: root.orientation
     Label:
         pos_hint: {'center_x': 0.5, 'y': 0}
-        text_size: (240, None)
+        text_size: (root.width, None)
         text: root.text
         size: self.texture_size
         size_hint: (None, None)
     Label:
         pos_hint: {'center_x': 0.5, 'top': 1}
-        text_size: (240, None)
+        text_size: (root.width, None)
         text: str(root.orientation)
         size: self.texture_size
         size_hint: (None, None)
@@ -42,10 +41,12 @@
         text: root.dir1
         source: root.thumb1
         orientation: root.orientation1
+        on_release: app.direntry_selected(root.dir1)
     Direntry:
         text: root.dir2
         source: root.thumb2
         orientation: root.orientation2
+        on_release: app.direntry_selected(root.dir2)
 
 BoxLayout:
     orientation: "vertical"
