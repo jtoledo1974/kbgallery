@@ -61,10 +61,7 @@ class Dirlist(ListView):
 
     def __init__(self, root="", path="", **kwargs):
 
-        self.root = root
         self.path = path
-
-        self.direntries = []
 
         def args_converter(row_index, rec):
             return {'dir1': rec[0]['direntry'],
@@ -82,38 +79,6 @@ class Dirlist(ListView):
             )
 
         super(Dirlist, self).__init__(adapter=adapter, **kwargs)
-
-        UrlRequest(root+quote((path).encode('utf-8')),
-                   on_success=self.got_dirlist, debug=True)
-
-    def got_dirlist(self, req, res):
-        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
-
-        direntries = []
-        for l in res.split("\n"):
-            try:
-                d = loads(l)
-                try:
-                    self.dir = d['dir']
-                except:
-                    if d not in self.direntries:
-                        direntries.append(d)
-                        self.direntries.append(d)
-            except:
-                pass
-
-        turl = self.root + urljoin('thumb',
-                                   quote(self.dir.encode('utf-8')))
-        ld = [{'direntry': de,
-               'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
-               'orientation': orientation}
-              for (de, orientation, file_type) in direntries
-              # if file_type == DIR]
-              ]
-
-        data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
-        self.adapter.data = self.adapter.data + data
-        self._reset_spopulate()
 
 
 class KBGalleryApp(App):
@@ -172,9 +137,59 @@ class KBGalleryApp(App):
 
         self.server_url = self.config.get('general', 'server_url')
         self.server_url = 'http://localhost:8888/'
-        self.dirlist = dirlist = Dirlist(root=self.server_url)
         self.navigation = []
-        self.root.content.add_widget(dirlist)
+
+        # Currently displayed dirlist
+        self._path = ""        # The path under the server root of the dirlist
+        self._direntries = []  # The direntries already received
+        self.dirlist = None   # The Dirlist widget currently displayed
+
+        self.fetch_dir(path='')
+
+    def fetch_dir(self, path=''):  # Server dir
+        root = self.server_url
+        self._path = path = quote((path).encode('utf-8'))
+        UrlRequest(urljoin(root, path, ''), on_success=self.got_dirlist,
+                   debug=True)
+
+    def got_dirlist(self, req, res):
+        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+
+        direntries = []
+        for l in res.split("\n"):
+            try:
+                d = loads(l)
+                try:
+                    sdir = d['dir']  # Server dir
+                except:
+                    # If we get a partial result, only append
+                    # the new direntries
+                    if d not in self._direntries:
+                        direntries.append(d)
+                        self._direntries.append(d)
+            except:
+                pass
+
+        directories = [de for de in direntries if de[2] == DIR]
+        files = [de for de in direntries if de[2] == FILE]
+
+        if len(directories):
+            dirlist = Dirlist(root=self.server_url, path=self._path)
+
+            turl = self.server_url + urljoin('thumb',
+                                             quote(sdir.encode('utf-8')))
+            ld = [{'direntry': de,
+                   'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
+                   'orientation': orientation}
+                  for (de, orientation, file_type) in directories
+                  ]
+
+            data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
+            dirlist.adapter.data = data
+            dirlist._reset_spopulate()
+
+            self.root.content.add_widget(dirlist)
+            self.dirlist = dirlist
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
@@ -185,9 +200,7 @@ class KBGalleryApp(App):
 
         self.root.content.remove_widget(self.dirlist)
         self.navigation.append(self.dirlist)
-        self.dirlist = Dirlist(root=self.server_url,
-                               path=self.dirlist.path+direntry+'/')
-        self.root.content.add_widget(self.dirlist)
+        self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
         self.root.with_previous = True
 
     def load_previous(self):
