@@ -50,6 +50,7 @@ class RotImage(AsyncImage):
 
     def _on_source_load(self, value):
         super(RotImage, self)._on_source_load(value)
+        self.color = [1, 1, 1, 1]
         self.allow_stretch = True
 
 
