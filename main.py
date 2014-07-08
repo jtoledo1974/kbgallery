@@ -2,6 +2,7 @@
 from datetime import datetime
 from urllib import quote
 from posixpath import join as urljoin
+from itertools import islice, izip
 from json import loads
 
 from kivy.app import App
@@ -41,6 +42,18 @@ def pad_modulo(list, padding, modulo):
         return list
     else:
         return list + padding * (modulo - length_modulo)
+
+
+def group(lst, n):
+    """group([0,3,4,10,2,3], 2) => iterator
+
+    Group an iterable into an n-tuples iterable. Incomplete tuples
+    are discarded e.g.
+
+    >>> list(group(range(10), 3))
+    [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+    """
+    return izip(*[islice(lst, i, None, n) for i in range(n)])
 
 
 class RotImage(AsyncImage):
@@ -223,42 +236,31 @@ class KBGalleryApp(App):
         turl = self.server_url + urljoin('thumb',
                                          quote(sdir.encode('utf-8')))
         if len(directories):
+            listclass = Dirlist
             listing = directories
+            cols = 2
         elif len(files):
+            listclass = Imglist
             listing = files
+            cols = 3
         else:
-            listing = []
+            Logger.warning("Empty directory %s" % urljoin(self._path, sdir))
+            return
 
         ld = [{'direntry': de,
                'thumb_url': urljoin(turl, quote(de.encode('utf-8'))),
                'orientation': orientation}
               for (de, orientation, file_type) in listing]
+        ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
+                             'orientation': 1}], cols)
 
-        if len(directories):
-            dirlist = Dirlist(root=self.server_url, path=self._path)
+        data = group(ld, cols)
+        listwidget = listclass(root=self.server_url, path=self._path)
+        listwidget.adapter.data = data
+        listwidget._reset_spopulate()
 
-            ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
-                                 'orientation': 1}], 2)
-
-            data = [(ld[i*2], ld[i*2+1]) for i in range(len(ld)/2)]
-            dirlist.adapter.data = data
-            dirlist._reset_spopulate()
-
-            self.root.container.add_widget(dirlist)
-            self.content = dirlist
-
-        elif len(files):
-            imglist = Imglist(root=self.server_url, path=self._path)
-
-            ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
-                                 'orientation': 1}], 3)
-
-            data = [(ld[i*3], ld[i*3+1], ld[i*3+2]) for i in range(len(ld)/3)]
-            imglist.adapter.data = data
-            imglist._reset_spopulate()
-
-            self.root.container.add_widget(imglist)
-            self.content = imglist
+        self.root.container.add_widget(listwidget)
+        self.content = listwidget
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
