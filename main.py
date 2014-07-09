@@ -11,6 +11,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
+from kivy.loader import Loader
 from kivy.uix.image import AsyncImage
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -353,6 +354,8 @@ class KBGalleryApp(App):
         self.load_previous = contentlist.load_previous
 
         self.root.container.add_widget(contentlist)
+        self.root.bind(on_touch_down=lambda *a: Loader.pause(),
+                       on_touch_up=lambda *a: Loader.resume())
 
     def on_stop(self):
         pass
