@@ -149,6 +149,9 @@ class Contentlist(FloatLayout, EventDispatcher):
         self.add_widget(listwidget)
         self.content = listwidget
 
+        # Finally, when we get the full results
+        self._direntries = []
+
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
 
