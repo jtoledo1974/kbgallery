@@ -92,11 +92,15 @@ class Contentlist(FloatLayout, EventDispatcher):
     def fetch_dir(self, path=''):  # Server dir
         root = self.server_url
         self._path = path = quote((path).encode('utf-8'))
-        UrlRequest(urljoin(root, path, ''), on_success=self.got_dirlist,
-                   debug=True)
+        self.req = UrlRequest(urljoin(root, path, ''),
+                              on_success=self.got_dirlist,
+                              debug=True)
+        self.req.cancel = False
 
     def got_dirlist(self, req, res):
         Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+        if req.cancel:
+            return
 
         direntries = []
         for l in res.split("\n"):
@@ -188,6 +192,7 @@ class Contentlist(FloatLayout, EventDispatcher):
     def load_previous(self):
         try:
             previous = self.navigation.pop(-1)
+            self.req.cancel = True
             self.remove_widget(self.content)
             self.add_widget(previous)
             self.content = previous
