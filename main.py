@@ -179,7 +179,7 @@ class KBGalleryApp(App):
                 return True
             else:
                 if platform == 'android':
-                    activity.moveTaskToBack(True)
+                    self.load_previous()
                 return True
         return False
 
