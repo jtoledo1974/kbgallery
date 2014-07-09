@@ -287,10 +287,13 @@ class KBGalleryApp(App):
         # self.root.with_previous = True
 
     def load_previous(self):
-        self.root.container.remove_widget(self.content)
-        previous = self.navigation.pop(-1)
-        self.root.container.add_widget(previous)
-        self.content = previous
+        try:
+            previous = self.navigation.pop(-1)
+            self.root.container.remove_widget(self.content)
+            self.root.container.add_widget(previous)
+            self.content = previous
+        except IndexError:
+            pass
 
         if not len(self.navigation):
             self.root.with_previous = False
