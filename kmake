@@ -1,0 +1,42 @@
+#!/bin/bash
+ANDROID_HOME=~/.buildozer/android/platform/android-sdk-21
+ADB=$ANDROID_HOME/platform-tools/adb
+CLASSPATH=$ANDROID_HOME/platforms/android-14/android.jar
+set -x
+
+#cd /media/JTC/planilla
+git describe --tags > version.txt
+# cd /media/JTC/java
+# javac -classpath $CLASSPATH  org/jtc/planilla/*.java
+# jar -cf PlanillaHelper.jar org/jtc/planilla/*.class
+
+# cd ~/kivy/JTC/;
+# cp /media/JTC/planilla/*.{py,kv,csv,json,xml} .
+# cp /media/JTC/planilla/version.txt .
+# cp /media/JTC/planilla/service/*.py service
+# cp /media/JTC/java/*.jar java
+
+python -OO -m compileall -f -l .
+
+if [ -n "$1" ]
+then
+	echo argumento $1
+	FILES=`echo *.{pyo,kv,csv,json} version.txt`
+	expect -c "
+        spawn /usr/bin/scp -r $FILES root@$1:/data/data/org.jtc.kbgallery/files/
+        expect {
+          "*password:*" { send "cunter38"\r\n; interact }
+          eof { exit }
+        }
+        exit
+        "
+else
+	echo Falta dirección del ssh
+fi
+
+REJLOG="\[Logger|\[Factory|\[App|\[Win|\[GL|\[Shader|\[Support|\[Atlas|\[OSC|joyst|\[Text|\[Base|Android path|audio thread|Initialize|site-packages|bootstrap|Run user|cdrom"
+
+$ADB shell am force-stop org.jtc.kbgallery
+$ADB shell am start -n org.jtc.kbgallery/org.renpy.android.PythonActivity -a org.renpy.android.PythonActivity
+$ADB logcat -c
+$ADB logcat -s python | egrep -v "$REJLOG"
