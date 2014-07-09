@@ -5,15 +5,17 @@ from posixpath import join as urljoin
 from itertools import islice, izip
 from json import loads
 
+from kivy import platform
 from kivy.app import App
 from kivy.config import Config
-from kivy.uix.image import AsyncImage
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.listview import ListView
-from kivy.adapters.listadapter import ListAdapter
-from kivy import platform
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
+from kivy.event import EventDispatcher
+from kivy.uix.image import AsyncImage
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.listview import ListView
+from kivy.adapters.listadapter import ListAdapter
 from kivy.network.urlrequest import UrlRequest
 
 if platform == 'android':
@@ -69,6 +71,139 @@ class RotImage(AsyncImage):
         self.allow_stretch = True
 
 
+class Contentlist(FloatLayout, EventDispatcher):
+
+    __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected')
+
+    def __init__(self, server_url, root="", path="", **kwargs):
+
+        self.navigation = []
+        self.server_url = server_url
+
+        # Currently displayed content widget (dirlist, imglist)
+        self._path = ""        # The path under the server root of the dirlist
+        self._direntries = []  # The direntries already received
+        self.content = None   # The Dirlist widget currently displayed
+
+        super(Contentlist, self).__init__(**kwargs)
+
+        self.fetch_dir(path='')
+
+    def fetch_dir(self, path=''):  # Server dir
+        root = self.server_url
+        self._path = path = quote((path).encode('utf-8'))
+        UrlRequest(urljoin(root, path, ''), on_success=self.got_dirlist,
+                   debug=True)
+
+    def got_dirlist(self, req, res):
+        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+
+        direntries = []
+        for l in res.split("\n"):
+            try:
+                d = loads(l)
+                try:
+                    sdir = d['dir']  # Server dir
+                except:
+                    # If we get a partial result, only append
+                    # the new direntries
+                    if d not in self._direntries:
+                        direntries.append(d)
+                        self._direntries.append(d)
+            except:
+                pass
+
+        directories = [de for de in direntries if de[2] == DIR]
+        files = [de for de in direntries if de[2] == FILE]
+
+        turl = self.server_url + urljoin('thumb',
+                                         quote(sdir.encode('utf-8')))
+        if len(directories):
+            listclass = Dirlist
+            listing = directories
+            cols = 2
+            arg_dict = {'direntry_selected': self.direntry_selected}
+        elif len(files):
+            listclass = Imglist
+            listing = files
+            cols = 3
+            arg_dict = {'img_selected': self.img_selected}
+        else:
+            Logger.warning("Empty directory %s" % urljoin(self._path, sdir))
+            return
+
+        ld = [dict(arg_dict.items() +
+                   {'direntry': de,
+                    'thumb_url': urljoin(turl,
+                                         quote(de.encode('utf-8')+'.jpg')),
+                    'orientation': orientation}.items())
+              for (de, orientation, file_type) in listing]
+        ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
+                             'orientation': 1}], cols)
+
+        data = group(ld, cols)
+        listwidget = listclass(root=self.server_url, path=self._path)
+        listwidget.adapter.data = data
+        listwidget._reset_spopulate()
+
+        self.add_widget(listwidget)
+        self.content = listwidget
+
+    def direntry_selected(self, direntry):
+        Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
+
+        # TODO Cancelar los requests anteriores si posible
+        # El servidor se puede quedar pillado haciendo thumbnails
+        # antes de responder al cambio de directorio
+
+        self.remove_widget(self.content)
+        self.navigation.append(self.content)
+        self.fetch_dir(path=urljoin(self.content.path, direntry, ''))
+        self.dispatch('on_navigate_down')
+
+    def img_selected(self, direntry):
+        Logger.debug("%s: img_selected %s" % (APP, direntry))
+        self.dispatch('on_img_selected',
+                      urljoin(self.content.path, direntry))
+
+        # TODO Cancelar los requests anteriores si posible
+        # El servidor se puede quedar pillado haciendo thumbnails
+        # antes de responder al cambio de directorio
+
+        # self.root.container.remove_widget(self.dirlist)
+        # self.navigation.append(self.dirlist)
+        # self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
+        # self.root.with_previous = True
+
+    def reload(self):
+        try:
+            if type(self.content) in (Imglist, Dirlist):
+                pass
+        except Exception as e:
+            Logger.error("%s: Unable to reload content: %s" % (APP, e))
+
+    def load_previous(self):
+        try:
+            previous = self.navigation.pop(-1)
+            self.remove_widget(self.content)
+            self.add_widget(previous)
+            self.content = previous
+        except IndexError:
+            pass
+
+        if not len(self.navigation):
+            self.dispatch('on_navigate_top')
+
+    def on_navigate_down(self):
+        pass
+
+    def on_navigate_top(self):
+        pass
+
+    def on_img_selected(self, url):
+        pass
+
+
 class ImglistRow(BoxLayout):
     f1 = StringProperty()  # Filepath 1, 2, 3
     f2 = StringProperty()
@@ -79,6 +214,7 @@ class ImglistRow(BoxLayout):
     o1 = NumericProperty(1)  # Orientation 1, 2, 3
     o2 = NumericProperty(1)
     o3 = NumericProperty(1)
+    img_selected = ObjectProperty()
 
 
 class Imglist(ListView):
@@ -97,6 +233,7 @@ class Imglist(ListView):
                     'o1': rec[0]['orientation'],
                     'o2': rec[1]['orientation'],
                     'o3': rec[2]['orientation'],
+                    'img_selected': rec[0]['img_selected']
                     }
 
         self.adapter = adapter = ListAdapter(
@@ -116,6 +253,7 @@ class DirlistRow(BoxLayout):
     thumb2 = StringProperty()
     orientation1 = NumericProperty(1)
     orientation2 = NumericProperty(1)
+    direntry_selected = ObjectProperty()
 
 
 class Dirlist(ListView):
@@ -130,7 +268,8 @@ class Dirlist(ListView):
                     'thumb1': rec[0]['thumb_url'],
                     'thumb2': rec[1]['thumb_url'],
                     'orientation1': rec[0]['orientation'],
-                    'orientation2': rec[1]['orientation']}
+                    'orientation2': rec[1]['orientation'],
+                    'direntry_selected': rec[0]['direntry_selected']}
 
         self.adapter = adapter = ListAdapter(
             data=[],
@@ -197,106 +336,15 @@ class KBGalleryApp(App):
             self.on_new_intent(activity.getIntent())
 
         self.server_url = self.config.get('general', 'server_url')
-        self.navigation = []
 
-        # Currently displayed content widget (dirlist, imglist)
-        self._path = ""        # The path under the server root of the dirlist
-        self._direntries = []  # The direntries already received
-        self.content = None   # The Dirlist widget currently displayed
+        contentlist = Contentlist(server_url=self.server_url)
+        wp = 'with_previous'
+        contentlist.bind(
+            on_navigate_top=lambda *a: setattr(self.root, wp, False),
+            on_navigate_down=lambda *a: setattr(self.root, wp, True))
+        self.load_previous = contentlist.load_previous
 
-        self.fetch_dir(path='')
-
-    def fetch_dir(self, path=''):  # Server dir
-        root = self.server_url
-        self._path = path = quote((path).encode('utf-8'))
-        UrlRequest(urljoin(root, path, ''), on_success=self.got_dirlist,
-                   debug=True)
-
-    def got_dirlist(self, req, res):
-        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
-
-        direntries = []
-        for l in res.split("\n"):
-            try:
-                d = loads(l)
-                try:
-                    sdir = d['dir']  # Server dir
-                except:
-                    # If we get a partial result, only append
-                    # the new direntries
-                    if d not in self._direntries:
-                        direntries.append(d)
-                        self._direntries.append(d)
-            except:
-                pass
-
-        directories = [de for de in direntries if de[2] == DIR]
-        files = [de for de in direntries if de[2] == FILE]
-
-        turl = self.server_url + urljoin('thumb',
-                                         quote(sdir.encode('utf-8')))
-        if len(directories):
-            listclass = Dirlist
-            listing = directories
-            cols = 2
-        elif len(files):
-            listclass = Imglist
-            listing = files
-            cols = 3
-        else:
-            Logger.warning("Empty directory %s" % urljoin(self._path, sdir))
-            return
-
-        ld = [{'direntry': de,
-               'thumb_url': urljoin(turl, quote(de.encode('utf-8')+'.jpg')),
-               'orientation': orientation}
-              for (de, orientation, file_type) in listing]
-        ld = pad_modulo(ld, [{'direntry': '', 'thumb_url': '',
-                             'orientation': 1}], cols)
-
-        data = group(ld, cols)
-        listwidget = listclass(root=self.server_url, path=self._path)
-        listwidget.adapter.data = data
-        listwidget._reset_spopulate()
-
-        self.root.container.add_widget(listwidget)
-        self.content = listwidget
-
-    def direntry_selected(self, direntry):
-        Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
-
-        # TODO Cancelar los requests anteriores si posible
-        # El servidor se puede quedar pillado haciendo thumbnails
-        # antes de responder al cambio de directorio
-
-        self.root.container.remove_widget(self.content)
-        self.navigation.append(self.content)
-        self.fetch_dir(path=urljoin(self.content.path, direntry, ''))
-        self.root.with_previous = True
-
-    def img_selected(self, direntry):
-        Logger.debug("%s: on_img_selected %s" % (APP, direntry))
-
-        # TODO Cancelar los requests anteriores si posible
-        # El servidor se puede quedar pillado haciendo thumbnails
-        # antes de responder al cambio de directorio
-
-        # self.root.container.remove_widget(self.dirlist)
-        # self.navigation.append(self.dirlist)
-        # self.fetch_dir(path=urljoin(self.dirlist.path, direntry, ''))
-        # self.root.with_previous = True
-
-    def load_previous(self):
-        try:
-            previous = self.navigation.pop(-1)
-            self.root.container.remove_widget(self.content)
-            self.root.container.add_widget(previous)
-            self.content = previous
-        except IndexError:
-            pass
-
-        if not len(self.navigation):
-            self.root.with_previous = False
+        self.root.container.add_widget(contentlist)
 
     def on_stop(self):
         pass

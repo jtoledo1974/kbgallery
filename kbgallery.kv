@@ -42,12 +42,12 @@
         text: root.dir1
         source: root.thumb1
         orientation: root.orientation1
-        on_release: app.direntry_selected(root.dir1)
+        on_release: root.direntry_selected(root.dir1)
     Direntry:
         text: root.dir2
         source: root.thumb2
         orientation: root.orientation2
-        on_release: app.direntry_selected(root.dir2)
+        on_release: root.direntry_selected(root.dir2)
 
 <ImglistRow>:
     size_hint_y: None
@@ -56,17 +56,17 @@
         text: root.f1
         source: root.t1
         orientation: root.o1
-        on_release: app.img_selected(root.f1)
+        on_release: root.img_selected(root.f1)
     Direntry:
         text: root.f2
         source: root.t2
         orientation: root.o2
-        on_release: app.img_selected(root.f2)
+        on_release: root.img_selected(root.f2)
     Direntry:
         text: root.f3
         source: root.t3
         orientation: root.o3
-        on_release: app.img_selected(root.f3)
+        on_release: root.img_selected(root.f3)
 
 
 BoxLayout:
@@ -84,6 +84,9 @@ BoxLayout:
                 with_previous: root.with_previous
                 on_release: root.with_previous and app.load_previous()
             ActionOverflow:
+                ActionButton:
+                    text: "Reload"
+                    on_release: app.reload_content()
                 ActionButton:
                     text: "Settings"
                     on_release: app.open_settings()
