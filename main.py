@@ -8,7 +8,7 @@ from kivy.logger import Logger
 from kivy.loader import Loader
 
 from image import CachedImage, clear_cache  # Used in the kv file
-from imagedir import ImageDir
+from imagedir import ImageDir, ImageCarousel
 
 if platform == 'android':
     Logger.debug('KBGALLERY: Importando %s' % datetime.now())
@@ -90,8 +90,10 @@ class KBGalleryApp(App):
         wp = 'with_previous'
         imagedir.bind(
             on_navigate_top=lambda *a: setattr(self.root, wp, False),
-            on_navigate_down=lambda *a: setattr(self.root, wp, True))
+            on_navigate_down=lambda *a: setattr(self.root, wp, True),
+            on_img_selected=self.load_carousel)
         self.load_previous = imagedir.load_previous
+        self.imagedir = imagedir
 
         self.root.container.add_widget(imagedir)
         self.root.bind(on_touch_down=lambda *a: Loader.pause(),
@@ -104,6 +106,11 @@ class KBGalleryApp(App):
     def clear_image_cache(self):
         clear_cache()
         return True
+
+    def load_carousel(self, widget, path, fn):
+        self.root.container.remove_widget(self.imagedir)
+        imagecarousel = ImageCarousel(server_url=self.server_url, path=path)
+        self.root.container.add_widget(imagecarousel)
 
     def on_config_change(self, config, section, key, value):
         Logger.debug("%s: on_config_change key %s %s" % (

@@ -249,7 +249,7 @@ class ImageDir(FloatLayout, EventDispatcher):
     def on_navigate_top(self):
         pass
 
-    def on_img_selected(self, url):
+    def on_img_selected(self, path, fn):
         pass
 
 
