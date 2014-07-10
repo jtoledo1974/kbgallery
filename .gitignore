@@ -9,6 +9,7 @@ kbgallery.ini
 .kivy
 *pstats
 *.png
+.kbimgcache/
 ######### Python
 
 # Byte-compiled / optimized / DLL files
