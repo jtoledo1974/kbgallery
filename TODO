@@ -1,0 +1,12 @@
+TODO
+
+Establecer la manera de hacer caché de las imágenes que se descargan.
+Loader borra inmediatamente el archivo descargado, así que no nos vale.
+la superficie de pygame podría guardar como jpeg, pero también se pierde la referencia.
+Lo suyo parece ser encargarnos directamente de descargar el archivo y presentarlo cuando esté
+
+Aunque no se haya notado mucho, con la estructura del loader es posible pausarlo cuando estamos interactuando. Puede ser interesante reutilizarlo.
+
+En caso de que finalmente vayamos a usar texturas comprimidas, echar un vistazo a https://bitbucket.org/wolfpld/etcpak/overview, software para comprimir etc1 (lo que soporta android)
+
+Definitivamente habrá que probar texturas etc1. Para ello crear una textura a partir de un ImageData con create_from_data
