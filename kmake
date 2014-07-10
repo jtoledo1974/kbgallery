@@ -21,7 +21,7 @@ python -OO -m compileall -f -l .
 if [ -n "$1" ]
 then
 	echo argumento $1
-	FILES=`echo *.{pyo,kv,csv,json} version.txt`
+	FILES=`echo *.{pyo,kv,json} version.txt`
 	expect -c "
         spawn /usr/bin/scp -r $FILES root@$1:/data/data/org.jtc.kbgallery/files/
         expect {
