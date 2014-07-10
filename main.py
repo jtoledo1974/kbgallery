@@ -18,7 +18,7 @@ from kivy.uix.listview import ListView
 from kivy.adapters.listadapter import ListAdapter
 from kivy.network.urlrequest import UrlRequest
 
-from image import CachedImage  # Used in the kv file
+from image import CachedImage, clear_cache  # Used in the kv file
 
 if platform == 'android':
     Logger.debug('KBGALLERY: Importando %s' % datetime.now())
@@ -348,6 +348,10 @@ class KBGalleryApp(App):
 
     def on_stop(self):
         pass
+
+    def clear_image_cache(self):
+        clear_cache()
+        return True
 
     def on_config_change(self, config, section, key, value):
         Logger.debug("%s: on_config_change key %s %s" % (
