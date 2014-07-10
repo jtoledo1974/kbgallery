@@ -356,6 +356,7 @@ class KBGalleryApp(App):
         self.root.container.add_widget(contentlist)
         self.root.bind(on_touch_down=lambda *a: Loader.pause(),
                        on_touch_up=lambda *a: Loader.resume())
+        Loader.max_upload_per_frame = 1  # Maximize interactivity
 
     def on_stop(self):
         pass
