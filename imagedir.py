@@ -11,8 +11,11 @@ from kivy.event import EventDispatcher
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.listview import ListView
+from kivy.uix.carousel import Carousel
 from kivy.adapters.listadapter import ListAdapter
 from kivy.network.urlrequest import UrlRequest
+
+from image import CachedImage
 
 APP = 'KBContentList'
 DIR = 'dir'
@@ -97,6 +100,31 @@ def group(lst, n):
     return izip(*[islice(lst, i, None, n) for i in range(n)])
 
 
+_direntries = []
+
+
+def get_direntries(res):
+        # TODO Fix this if we want to be able to handle to requests
+        # at the same time
+        global _direntries
+        direntries = []
+        sdir = None
+        for l in res.split("\n"):
+            try:
+                d = loads(l)
+                try:
+                    sdir = d['dir']  # Server dir
+                except:
+                    # If we get a partial result, only append
+                    # the new direntries
+                    if d not in _direntries:
+                        direntries.append(d)
+                        _direntries.append(d)
+            except:
+                pass
+        return sdir, direntries
+
+
 class ImageDir(FloatLayout, EventDispatcher):
 
     __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected')
@@ -128,20 +156,9 @@ class ImageDir(FloatLayout, EventDispatcher):
         if req.cancel:
             return
 
-        direntries = []
-        for l in res.split("\n"):
-            try:
-                d = loads(l)
-                try:
-                    sdir = d['dir']  # Server dir
-                except:
-                    # If we get a partial result, only append
-                    # the new direntries
-                    if d not in self._direntries:
-                        direntries.append(d)
-                        self._direntries.append(d)
-            except:
-                pass
+        # TODO in partial results sdir may be None
+        sdir, direntries = get_direntries(res)
+        print sdir, direntries
 
         directories = [de for de in direntries if de[2] == DIR]
         files = [de for de in direntries if de[2] == FILE]
@@ -195,9 +212,9 @@ class ImageDir(FloatLayout, EventDispatcher):
         self.dispatch('on_navigate_down')
 
     def img_selected(self, direntry):
-        Logger.debug("%s: img_selected %s" % (APP, direntry))
-        self.dispatch('on_img_selected',
-                      urljoin(self.content.path, direntry))
+        fn = urljoin(self.content.path, direntry)
+        Logger.debug("%s: img_selected %s" % (APP, fn))
+        self.dispatch('on_img_selected', self.content.path, direntry)
 
         # TODO Cancelar los requests anteriores si posible
         # El servidor se puede quedar pillado haciendo thumbnails
@@ -313,3 +330,26 @@ class Dirlist(ListView):
             )
 
         super(Dirlist, self).__init__(adapter=adapter, **kwargs)
+
+
+class ImageCarousel(Carousel):
+    path = StringProperty("")
+    server_url = StringProperty("")
+
+    def on_path(self, widget, path):
+        self.clear_widgets()
+        req = UrlRequest(urljoin(self.server_url, path, ""),
+                         on_success=self.got_dir)
+
+    def got_dir(self, req, res):
+        #import pdb; pdb.set_trace()
+        sdir, direntries = get_direntries(res)
+
+        files = [de for de in direntries if de[2] == FILE]
+
+        turl = self.server_url + urljoin('thumb',
+                                         quote(sdir.encode('utf-8')), '')
+        for (fn, orientation, file_type) in files:
+            self.add_widget(
+                CachedImage(source=turl + quote(fn.encode('utf-8') + '.jpg'),
+                            orientation=orientation))
