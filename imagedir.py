@@ -339,8 +339,10 @@ class ImageCarousel(Carousel):
         req = UrlRequest(urljoin(self.server_url, path, ""),
                          on_success=self.got_dir)
 
+    def on_server_url(self, widget, server_url):
+        self.on_path(None, self.path)
+
     def got_dir(self, req, res):
-        #import pdb; pdb.set_trace()
         sdir, direntries = get_direntries(res)
 
         files = [de for de in direntries if de[2] == FILE]
