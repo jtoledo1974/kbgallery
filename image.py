@@ -1,4 +1,8 @@
+import errno
+from os import makedirs
 from zlib import crc32
+from shutil import rmtree
+from os.path import join, dirname
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
@@ -32,6 +36,26 @@ Builder.load_string('''
         PopMatrix
 ''')
 
+cache_root = ".kbimgcache"
+
+
+def set_cache_dir(root):
+    global cache_root
+    cache_root = root
+
+
+def get_cache_dir():
+    return cache_root
+
+
+def clear_cache():
+    try:
+        rmtree(cache_root)
+        Logger.info("%s: Cleared cache dir %s" % (APP, cache_root))
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
 
 class RotImage(AsyncImage):
     angle = NumericProperty(0)
@@ -61,11 +85,17 @@ class CachedImage(FloatLayout):
     def on_source(self, widget, source):
         if not source:
             return
-        self.fn = fn = "{0:x}.jpg".format(crc32(source) & 0xffffffff)
+        fn = "{0:x}.jpg".format(crc32(source) & 0xffffffff)
+        self.fn = fn = join(cache_root, fn[:2], fn)
         try:
             open(fn)
             self.image.source = fn
         except:
+            try:
+                makedirs(dirname(fn))
+            except OSError as exception:
+                if exception.errno != errno.EEXIST:
+                    raise
             UrlRequest(url=source, on_success=self.img_downloaded,
                        file_path=fn)
 
