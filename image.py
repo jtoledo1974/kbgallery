@@ -78,10 +78,6 @@ class CachedImage(FloatLayout):
     source = StringProperty("", allownone=True)
     image = ObjectProperty()
 
-    def __init__(self, **kwargs):
-        super(CachedImage, self).__init__(**kwargs)
-        self.kwargs = kwargs
-
     def on_source(self, widget, source):
         if not source:
             return
