@@ -12,12 +12,13 @@ from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
 from kivy.loader import Loader
-from kivy.uix.image import AsyncImage
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.listview import ListView
 from kivy.adapters.listadapter import ListAdapter
 from kivy.network.urlrequest import UrlRequest
+
+from image import CachedImage  # Used in the kv file
 
 if platform == 'android':
     Logger.debug('KBGALLERY: Importando %s' % datetime.now())
@@ -57,19 +58,6 @@ def group(lst, n):
     [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
     """
     return izip(*[islice(lst, i, None, n) for i in range(n)])
-
-
-class RotImage(AsyncImage):
-    angle = NumericProperty(0)
-    orientation = NumericProperty(1)
-
-    def on_orientation(self, widget, value):
-        self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
-
-    def _on_source_load(self, value):
-        super(RotImage, self)._on_source_load(value)
-        self.color = [1, 1, 1, 1]
-        self.allow_stretch = True
 
 
 class Contentlist(FloatLayout, EventDispatcher):

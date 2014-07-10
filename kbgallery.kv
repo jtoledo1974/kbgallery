@@ -1,24 +1,8 @@
-#:import la kivy.adapters.listadapter
-
-<RotImage>:
-    angle: 0
-    orientation: 1
-    color: [0, 0, 0, 1]
-    nocache: True
-    canvas.before:
-        PushMatrix
-        Rotate:
-            angle:root.angle
-            axis: 0, 0, 1
-            origin: root.center
-    canvas.after:
-        PopMatrix
-
 <Direntry@ButtonBehavior+FloatLayout>:
     text: ''
     source: None
     orientation: 1
-    RotImage:
+    CachedImage:
         x: root.x
         y: root.y
         source: root.source
