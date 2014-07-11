@@ -92,7 +92,6 @@ class KBGalleryApp(App):
             on_navigate_top=lambda *a: setattr(self.root, wp, False),
             on_navigate_down=lambda *a: setattr(self.root, wp, True),
             on_img_selected=self.load_carousel)
-        self.load_previous = imagedir.load_previous
         self.imagedir = imagedir
 
         self.root.container.add_widget(imagedir)
@@ -107,10 +106,25 @@ class KBGalleryApp(App):
         clear_cache()
         return True
 
+    def load_previous(self, *args):
+        try:
+            content = self.root.container.children[0]
+        except:
+            pass
+        if type(content) == ImageDir:
+            self.imagedir.load_previous()
+        elif type(content) == ImageCarousel:
+            self.root.container.remove_widget(self.imagecarousel)
+            self.root.container.add_widget(self.imagedir)
+            self.imagecarousel = None
+        else:
+            Logger.error("Unknown content type %s" % type(content))
+
     def load_carousel(self, widget, path, fn):
         self.root.container.remove_widget(self.imagedir)
         imagecarousel = ImageCarousel(server_url=self.server_url, path=path)
         self.root.container.add_widget(imagecarousel)
+        self.imagecarousel = imagecarousel
 
     def on_config_change(self, config, section, key, value):
         Logger.debug("%s: on_config_change key %s %s" % (
