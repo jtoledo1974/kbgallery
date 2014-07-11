@@ -146,7 +146,8 @@ class ImageDir(FloatLayout, EventDispatcher):
 
         super(ImageDir, self).__init__(**kwargs)
 
-        self.fetch_dir(path=self.path)
+    def on_server_url(self, *args):
+        self.reload()
 
     def fetch_dir(self, path=''):  # Server dir
         root = self.server_url
@@ -229,8 +230,25 @@ class ImageDir(FloatLayout, EventDispatcher):
 
     def reload(self):
         try:
-            if type(self.content) in (Imglist, Dirlist):
+            try:
+                path = self.content.path
+            except:
+                path = self.path
+            try:
+                self.req.cancel = True
+            except:
                 pass
+            top = not len(self.navigation)
+            self.load_previous()
+            try:
+                self.remove_widget(self.content)
+                self.navigation.append(self.content)
+            except:
+                pass
+            self.fetch_dir(path)
+            if not top:
+                self.dispatch('on_navigate_down')
+
         except Exception as e:
             Logger.error("%s: Unable to reload content: %s" % (APP, e))
 
@@ -387,3 +405,6 @@ class ImageCarousel(Carousel):
                 file_url = jurl + fn + '.jpg'
             self.add_widget(
                 CachedImage(source=file_url, orientation=orientation))
+
+    def reload(self):
+        Logger.error("%s: Carousel reload not implemented" % APP)

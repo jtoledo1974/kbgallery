@@ -101,6 +101,10 @@ class KBGalleryApp(App):
     def on_stop(self):
         pass
 
+    def reload_content(self):
+        content = self.root.container.children[0]
+        content.reload()
+
     def clear_image_cache(self):
         clear_cache()
         return True
@@ -109,7 +113,7 @@ class KBGalleryApp(App):
         try:
             content = self.root.container.children[0]
         except:
-            pass
+            return
         if type(content) == ImageDir:
             self.imagedir.load_previous()
         elif type(content) == ImageCarousel:
@@ -128,6 +132,14 @@ class KBGalleryApp(App):
     def on_config_change(self, config, section, key, value):
         Logger.debug("%s: on_config_change key %s %s" % (
             APP, key, value))
+        try:
+            content = self.root.container.children[0]
+        except:
+            return
+        if key == 'server_url':
+            if type(content) == ImageCarousel:
+                self.load_previous()
+            content.server_url = value
 
     if platform == 'android':
         @run_on_ui_thread
