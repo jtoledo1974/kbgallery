@@ -131,7 +131,6 @@ def get_direntries(res):
 class ImageDir(FloatLayout, EventDispatcher):
 
     server_url = StringProperty()
-    root = StringProperty()
     path = StringProperty("")
 
     __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected')
