@@ -66,8 +66,7 @@ class KBGalleryApp(App):
                 self.close_settings()
                 return True
             else:
-                if platform == 'android':
-                    self.load_previous()
+                self.load_previous()
                 return True
         return False
 
