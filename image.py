@@ -114,4 +114,7 @@ class CachedImage(FloatLayout):
         self.image.source = self.fn
 
     def cleanup(self, *args):
-        unlink(self.fn)
+        try:
+            unlink(self.fn)
+        except:
+            pass
