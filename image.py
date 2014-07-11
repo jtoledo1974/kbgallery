@@ -78,8 +78,12 @@ class CachedImage(FloatLayout):
     source = StringProperty("", allownone=True)
     image = ObjectProperty()
 
+    def __init__(self, **kwargs):
+        super(CachedImage, self).__init__(**kwargs)
+        self.on_source(self, self.source)
+
     def on_source(self, widget, source):
-        if not source:
+        if not source or not self.image:
             return
         fn = "{0:x}.jpg".format(crc32(source) & 0xffffffff)
         self.fn = fn = join(cache_root, fn[:2], fn)
