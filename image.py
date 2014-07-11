@@ -61,8 +61,18 @@ class RotImage(AsyncImage):
     angle = NumericProperty(0)
     orientation = NumericProperty(1)
 
+    def __init__(self, **kwargs):
+        self.previous_orientation = 1
+        super(RotImage, self).__init__(**kwargs)
+
     def on_orientation(self, widget, value):
         self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
+        p, n = self.previous_orientation, value  # previous, new
+        w, h = self.width, self.height
+        if (p, n) in [(1, 6), (1, 8), (3, 6), (3, 8),
+                      (6, 1), (6, 3), (8, 1), (8, 3)]:
+            self.width, self.height = h, w
+        self.previous_orientation = value
 
     def _on_source_load(self, value):
         super(RotImage, self)._on_source_load(value)
