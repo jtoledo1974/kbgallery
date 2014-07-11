@@ -336,8 +336,8 @@ class ImageCarousel(Carousel):
 
     def on_path(self, widget, path):
         self.clear_widgets()
-        req = UrlRequest(urljoin(self.server_url, path, ""),
-                         on_success=self.got_dir)
+        UrlRequest(urljoin(self.server_url, path, ""),
+                   on_success=self.got_dir)
 
     def on_server_url(self, widget, server_url):
         self.on_path(None, self.path)
@@ -347,9 +347,15 @@ class ImageCarousel(Carousel):
 
         files = [de for de in direntries if de[2] == FILE]
 
-        turl = self.server_url + urljoin('thumb',
+        jurl = self.server_url + urljoin('jpeg',
                                          quote(sdir.encode('utf-8')), '')
+        url = self.server_url + urljoin(quote(sdir.encode('utf-8')), '')
+
         for (fn, orientation, file_type) in files:
+            fn = quote(fn.encode('utf-8'))
+            if fn[-4:].lower() in (".jpg", "jpeg"):
+                file_url = url + fn
+            else:
+                file_url = jurl + fn + '.jpg'
             self.add_widget(
-                CachedImage(source=turl + quote(fn.encode('utf-8') + '.jpg'),
-                            orientation=orientation))
+                CachedImage(source=file_url, orientation=orientation))
