@@ -8,6 +8,7 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
+from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.listview import ListView
@@ -333,6 +334,29 @@ class Dirlist(ListView):
 class ImageCarousel(Carousel):
     path = StringProperty("")
     server_url = StringProperty("")
+
+    def __init__(self, **kwargs):
+        super(ImageCarousel, self).__init__(**kwargs)
+        self._keyboard = Window.request_keyboard(
+            self._keyboard_closed, self, 'text')
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+
+    def _keyboard_closed(self):
+        print('My keyboard have been closed!')
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        if keycode[1] == 'escape':
+            keyboard.release()
+        elif keycode[1] == 'left':
+            self.load_previous()
+        elif keycode[1] == 'right':
+            self.load_next()
+
+        # Return True to accept the key. Otherwise, it will be used by
+        # the system.
+        return False
 
     def on_path(self, widget, path):
         self.clear_widgets()
