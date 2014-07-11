@@ -1,5 +1,5 @@
 import errno
-from os import makedirs
+from os import makedirs, lstat, unlink
 from zlib import crc32
 from shutil import rmtree
 from os.path import join, dirname
@@ -98,7 +98,7 @@ class CachedImage(FloatLayout):
         fn = "{0:x}.jpg".format(crc32(source) & 0xffffffff)
         self.fn = fn = join(cache_root, fn[:2], fn)
         try:
-            open(fn)
+            open(fn)  # Keep for reference: getattr(os.lstat(fn), 'st_size')
             self.image.source = fn
         except:
             try:
@@ -106,9 +106,12 @@ class CachedImage(FloatLayout):
             except OSError as exception:
                 if exception.errno != errno.EEXIST:
                     raise
-            UrlRequest(url=source, on_success=self.img_downloaded,
-                       file_path=fn)
+            UrlRequest(url=source, on_success=self.img_downloaded, file_path=fn,
+                       on_failure=self.cleanup, on_error=self.cleanup)
 
     def img_downloaded(self, req, res):
         Logger.debug("%s: img_downloaded %s %s" % (APP, req, res))
         self.image.source = self.fn
+
+    def cleanup(self, *args):
+        unlink(self.fn)
