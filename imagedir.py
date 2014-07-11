@@ -130,12 +130,15 @@ def get_direntries(res):
 
 class ImageDir(FloatLayout, EventDispatcher):
 
+    server_url = StringProperty()
+    root = StringProperty()
+    path = StringProperty("")
+
     __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected')
 
-    def __init__(self, server_url, root="", path="", **kwargs):
+    def __init__(self, **kwargs):
 
         self.navigation = []
-        self.server_url = server_url
 
         # Currently displayed content widget (dirlist, imglist)
         self._path = ""        # The path under the server root of the dirlist
@@ -144,7 +147,7 @@ class ImageDir(FloatLayout, EventDispatcher):
 
         super(ImageDir, self).__init__(**kwargs)
 
-        self.fetch_dir(path='')
+        self.fetch_dir(path=self.path)
 
     def fetch_dir(self, path=''):  # Server dir
         root = self.server_url
