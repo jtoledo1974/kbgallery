@@ -408,9 +408,18 @@ class ImageCarousel(Carousel):
             if platform == 'android':
                 orientation = {1: 8, 3: 6, 6: 6, 8: 8}[orig_orientation]
 
-            image = CachedImage(source=file_url, orientation=orientation)
+            image = CachedImage(source=file_url, orientation=orientation, load=False)
             image.orig_orientation = orig_orientation
             self.add_widget(image)
 
     def reload(self):
         Logger.error("%s: Carousel reload not implemented" % APP)
+
+    def _insert_visible_slides(self, _next_slide=None, _prev_slide=None):
+        super(ImageCarousel, self)._insert_visible_slides(_next_slide, _prev_slide)
+        if self._prev:
+            self._prev.children[0].load = True
+        if self._next:
+            self._next.children[0].load = True
+        if self._current:
+            self._current.children[0].load = True
