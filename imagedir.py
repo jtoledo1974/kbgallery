@@ -414,11 +414,3 @@ class ImageCarousel(Carousel):
 
     def reload(self):
         Logger.error("%s: Carousel reload not implemented" % APP)
-
-    def on_index(self, *args):
-        super(ImageCarousel, self).on_index(*args)
-        image = self.slides[self.index]
-        if platform == 'android' and image.orig_orientation in (1, 3):
-            self.direction = 'bottom'
-        else:
-            self.direction = 'right'
