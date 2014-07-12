@@ -5,7 +5,7 @@ from shutil import rmtree
 from os.path import join, dirname
 from kivy.lang import Builder
 from kivy.logger import Logger
-from kivy.properties import AliasProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.floatlayout import FloatLayout
 from kivy.network.urlrequest import UrlRequest
@@ -129,13 +129,14 @@ class CachedImage(FloatLayout):
     orientation = NumericProperty(1)
     source = StringProperty("", allownone=True)
     image = ObjectProperty()
+    load = BooleanProperty(True)
 
     def __init__(self, **kwargs):
         super(CachedImage, self).__init__(**kwargs)
         self.on_source(self, self.source)
 
     def on_source(self, widget, source):
-        if not source or not self.image:
+        if not source or not self.image or not self.load:
             return
         fn = "{0:x}.jpg".format(crc32(source) & 0xffffffff)
         self.fn = fn = join(cache_root, fn[:2], fn)
@@ -150,6 +151,11 @@ class CachedImage(FloatLayout):
                     raise
             UrlRequest(url=source, on_success=self.img_downloaded, file_path=fn,
                        on_failure=self.cleanup, on_error=self.cleanup)
+
+    def on_load(self, widget, load):
+        if not load or not self.source:
+            return
+        self.on_source(self, self.source)
 
     def img_downloaded(self, req, res):
         Logger.debug("%s: img_downloaded %s %s" % (APP, req, res))
