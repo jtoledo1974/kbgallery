@@ -397,14 +397,28 @@ class ImageCarousel(Carousel):
                                          quote(sdir.encode('utf-8')), '')
         url = self.server_url + urljoin(quote(sdir.encode('utf-8')), '')
 
-        for (fn, orientation, file_type) in files:
+        for (fn, orig_orientation, file_type) in files:
             fn = quote(fn.encode('utf-8'))
             if fn[-4:].lower() in (".jpg", "jpeg"):
                 file_url = url + fn
             else:
                 file_url = jurl + fn + '.jpg'
-            self.add_widget(
-                CachedImage(source=file_url, orientation=orientation))
+
+            orientation = orig_orientation
+            if platform == 'android':
+                orientation = {1: 8, 3: 6, 6: 6, 8: 8}[orig_orientation]
+
+            image = CachedImage(source=file_url, orientation=orientation)
+            image.orig_orientation = orig_orientation
+            self.add_widget(image)
 
     def reload(self):
         Logger.error("%s: Carousel reload not implemented" % APP)
+
+    def on_index(self, *args):
+        super(ImageCarousel, self).on_index(*args)
+        image = self.slides[self.index]
+        if platform == 'android' and image.orig_orientation in (1, 3):
+            self.direction = 'bottom'
+        else:
+            self.direction = 'right'
