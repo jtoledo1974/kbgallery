@@ -353,8 +353,9 @@ class Dirlist(ListView):
 
 
 class ImageCarousel(Carousel):
-    path = StringProperty("")
     server_url = StringProperty("")
+    path = StringProperty("")
+    filename = StringProperty("")   # To indicate which image to show first
 
     def __init__(self, **kwargs):
         super(ImageCarousel, self).__init__(**kwargs)
@@ -364,7 +365,6 @@ class ImageCarousel(Carousel):
             self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
     def _keyboard_closed(self):
-        print('My keyboard have been closed!')
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
 
