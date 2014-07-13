@@ -15,11 +15,21 @@ APP = "KBImage"
 Builder.load_string('''
 <CachedImage>:
     image: image
-    RotImage:
-        id: image
-        x: root.x
-        y: root.y
-        orientation: root.orientation
+    scatter: scatter
+    Scatter:
+        id: scatter
+        do_rotation: False
+        do_scale: False
+        do_translation: False
+        scale_min: 1.0
+        on_scale: root.on_scatter_scale(*args)
+        RotImage:
+            id: image
+            x: root.x
+            y: root.y
+            width: root.width
+            height: root.height
+            orientation: root.orientation
 
 <RotImage>:
     angle: 0
@@ -129,11 +139,33 @@ class CachedImage(FloatLayout):
     orientation = NumericProperty(1)
     source = StringProperty("", allownone=True)
     image = ObjectProperty()
+    scatter = ObjectProperty()
     load = BooleanProperty(True)
+    allow_scale = BooleanProperty(False)
+    image_scale = NumericProperty(1.0)  # To be used by parent widgets
 
     def __init__(self, **kwargs):
         super(CachedImage, self).__init__(**kwargs)
         self.on_source(self, self.source)
+        self.on_allow_scale(self, self.allow_scale)
+
+    def on_allow_scale(self, widget, allow):
+        if not self.scatter:
+            return
+        if allow:
+            self.scatter.do_scale = True
+        else:
+            self.scatter.do_scale = False
+
+    def on_scatter_scale(self, widget, scale):
+        scatter = self.scatter
+        self.image_scale = scale  # To be used by parent widgets
+        if scale <= 1.0:
+            scatter.scale = 1.0
+            scatter.do_translation = False
+            scatter.apply_transform(scatter.transform_inv)
+        elif scale > 1 and self.allow_scale:
+            scatter.do_translation = True
 
     def on_source(self, widget, source):
         if not source or not self.image or not self.load:
