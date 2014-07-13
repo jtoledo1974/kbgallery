@@ -315,6 +315,7 @@ class Imglist(ListView):
             )
 
         super(Imglist, self).__init__(adapter=adapter, **kwargs)
+        self.children[0].scroll_timeout = 500
 
 
 class DirlistRow(BoxLayout):
@@ -350,6 +351,7 @@ class Dirlist(ListView):
             )
 
         super(Dirlist, self).__init__(adapter=adapter, **kwargs)
+        self.children[0].scroll_timeout = 500
 
 
 class ImageCarousel(Carousel):
