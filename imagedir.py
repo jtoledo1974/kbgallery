@@ -29,6 +29,12 @@ Builder.load_string('''
     text: ''
     source: None
     orientation: 1
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            size: (self.size[0], self.size[1]*.25)
+            pos: self.pos
     CachedImage:
         x: root.x
         y: root.y
@@ -41,6 +47,7 @@ Builder.load_string('''
         text: root.text
         size: self.texture_size
         size_hint: (None, None)
+        color: (0, 0, 0, 1)
     Label:
         pos_hint: {'center_x': 0.5, 'top': 1}
         text_size: (root.width, None)
