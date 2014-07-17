@@ -140,7 +140,6 @@ class ImageDir(FloatLayout, EventDispatcher):
         self.navigation = []
 
         # Currently displayed content widget (dirlist, imglist)
-        self._path = ""        # The path under the server root of the dirlist
         self._direntries = []  # The direntries already received
         self.content = None   # The Dirlist widget currently displayed
 
@@ -151,7 +150,8 @@ class ImageDir(FloatLayout, EventDispatcher):
 
     def fetch_dir(self, path=''):  # Server dir
         root = self.server_url
-        self._path = path = quote((path).encode('utf-8'))
+        self.path = path
+        path = quote((path).encode('utf-8'))
         self.req = UrlRequest(urljoin(root, path, ''),
                               on_success=self.got_dirlist,
                               debug=True)
@@ -182,7 +182,7 @@ class ImageDir(FloatLayout, EventDispatcher):
             cols = 3
             arg_dict = {'img_selected': self.img_selected}
         else:
-            Logger.warning("Empty directory %s" % urljoin(self._path, sdir))
+            Logger.warning("Empty directory %s" % urljoin(self.path, sdir))
             return
 
         ld = [dict(arg_dict.items() +
@@ -195,7 +195,7 @@ class ImageDir(FloatLayout, EventDispatcher):
                              'orientation': 1}], cols)
 
         data = group(ld, cols)
-        listwidget = listclass(root=self.server_url, path=self._path)
+        listwidget = listclass(root=self.server_url, path=self.path)
         listwidget.adapter.data = data
         listwidget._reset_spopulate()
 
@@ -259,6 +259,7 @@ class ImageDir(FloatLayout, EventDispatcher):
             self.remove_widget(self.content)
             self.add_widget(previous)
             self.content = previous
+            self.path = previous.path
         except IndexError:
             pass
 
@@ -384,7 +385,7 @@ class ImageCarousel(Carousel):
 
     def on_path(self, widget, path):
         self.clear_widgets()
-        UrlRequest(urljoin(self.server_url, path, ""),
+        UrlRequest(urljoin(self.server_url, quote((path).encode('utf-8')), ""),
                    on_success=self.got_dir)
 
     def on_server_url(self, widget, server_url):

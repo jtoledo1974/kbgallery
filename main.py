@@ -90,7 +90,8 @@ class KBGalleryApp(App):
         imagedir.bind(
             on_navigate_top=lambda *a: setattr(self.root, wp, False),
             on_navigate_down=lambda *a: setattr(self.root, wp, True),
-            on_img_selected=self.load_carousel)
+            on_img_selected=self.load_carousel,
+            path=lambda w,v: setattr(self.root, 'title', v))
         self.imagedir = imagedir
 
         self.root.container.add_widget(imagedir)
