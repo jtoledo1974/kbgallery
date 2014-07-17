@@ -6,6 +6,7 @@ from kivy.app import App
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.loader import Loader
+from kivy.properties import BooleanProperty
 
 from image import CachedImage, clear_cache  # Used in the kv file
 from imagedir import ImageDir, ImageCarousel
@@ -31,6 +32,8 @@ __version__ = "0.0.1"
 
 
 class KBGalleryApp(App):
+
+    delay_image_loading = BooleanProperty(False)
 
     def build(self):
         Logger.debug("%s: build %s " % (APP, datetime.now()))
@@ -84,6 +87,10 @@ class KBGalleryApp(App):
             self.on_new_intent(activity.getIntent())
 
         self.server_url = self.config.get('general', 'server_url')
+
+        self.root.bind(
+            on_touch_down=lambda *a: setattr(self, 'delay_image_loading', True),
+            on_touch_up=lambda *a: setattr(self, 'delay_image_loading', False))
 
         imagedir = ImageDir(server_url=self.server_url)
         wp = 'with_previous'

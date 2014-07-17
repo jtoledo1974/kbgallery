@@ -34,6 +34,7 @@ Builder.load_string('''
         y: root.y
         source: root.source
         orientation: root.orientation
+        load: not app.delay_image_loading
     Label:
         pos_hint: {'center_x': 0.5, 'y': 0}
         text_size: (root.width, None)
