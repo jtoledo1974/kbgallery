@@ -438,6 +438,7 @@ class ImageCarousel(Carousel):
                                          quote(sdir.encode('utf-8')), '')
         url = self.server_url + urljoin(quote(sdir.encode('utf-8')), '')
 
+        index = i = 0
         for (fn, orig_orientation, file_type) in files:
             fn = quote(fn.encode('utf-8'))
             if fn[-4:].lower() in (".jpg", "jpeg"):
@@ -454,6 +455,12 @@ class ImageCarousel(Carousel):
             image.orig_orientation = orig_orientation
             image.bind(image_scale=self.on_image_scale)
             self.add_widget(image)
+
+            if fn == self.filename:
+                index = i
+            i +=1
+
+        self.index = index
 
     def reload(self):
         Logger.error("%s: Carousel reload not implemented" % APP)

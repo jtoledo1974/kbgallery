@@ -135,7 +135,8 @@ class KBGalleryApp(App):
 
     def load_carousel(self, widget, path, fn):
         self.root.container.remove_widget(self.imagedir)
-        imagecarousel = ImageCarousel(server_url=self.server_url, path=path)
+        imagecarousel = ImageCarousel(server_url=self.server_url, path=path,
+                                      filename=fn)
         self.root.container.add_widget(imagecarousel)
         self.imagecarousel = imagecarousel
 
