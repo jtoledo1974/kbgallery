@@ -7,6 +7,7 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import AsyncImage
+from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
 from kivy.network.urlrequest import UrlRequest
 
@@ -128,8 +129,8 @@ class RotImage(AsyncImage):
 
     def _on_source_load(self, value):
         super(RotImage, self)._on_source_load(value)
-        self.color = [1, 1, 1, 1]
         self.allow_stretch = True
+        Animation(color=(1,1,1,1), duration=0.2).start(self)
 
 
 class CachedImage(FloatLayout):
