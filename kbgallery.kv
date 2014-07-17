@@ -3,6 +3,7 @@ BoxLayout:
     with_previous: False
     container: container
     title: "KBGallery"
+    loading: True
     ActionBar:
         height: "48dp"
         pos_hint: {'x': 0, 'top':1}
@@ -13,6 +14,8 @@ BoxLayout:
                 title: root.title
                 with_previous: root.with_previous
                 on_release: root.with_previous and app.load_previous()
+            ActionButton:
+                icon: "data/images/image-loading.gif" if root.loading else ''
             ActionOverflow:
                 ActionButton:
                     text: "Reload"

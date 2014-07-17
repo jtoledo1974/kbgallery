@@ -133,7 +133,8 @@ class ImageDir(FloatLayout, EventDispatcher):
     server_url = StringProperty()
     path = StringProperty("")
 
-    __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected')
+    __events__ = ('on_navigate_down', 'on_navigate_top', 'on_img_selected',
+                  'on_loading_start', 'on_loading_stop')
 
     def __init__(self, **kwargs):
 
@@ -155,6 +156,7 @@ class ImageDir(FloatLayout, EventDispatcher):
         self.req = UrlRequest(urljoin(root, path, ''),
                               on_success=self.got_dirlist,
                               debug=True)
+        self.dispatch('on_loading_start')
         self.req.cancel = False
 
     def got_dirlist(self, req, res):
@@ -201,6 +203,7 @@ class ImageDir(FloatLayout, EventDispatcher):
 
         self.add_widget(listwidget)
         self.content = listwidget
+        self.dispatch('on_loading_stop')
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
@@ -273,6 +276,12 @@ class ImageDir(FloatLayout, EventDispatcher):
         pass
 
     def on_img_selected(self, path, fn):
+        pass
+
+    def on_loading_start(self):
+        pass
+
+    def on_loading_stop(self):
         pass
 
 
