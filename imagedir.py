@@ -194,7 +194,6 @@ class ImageDir(FloatLayout, EventDispatcher):
 
         # TODO in partial results sdir may be None
         sdir, direntries = get_direntries(res)
-        print sdir, direntries
 
         directories = [de for de in direntries if de[2] == DIR]
         files = [de for de in direntries if de[2] == FILE]
@@ -234,7 +233,8 @@ class ImageDir(FloatLayout, EventDispatcher):
         self.dispatch('on_loading_stop')
 
     def direntry_selected(self, direntry):
-        Logger.debug("%s: on_direntry_selected %s" % (APP, direntry))
+        Logger.debug("%s: on_direntry_selected %s" % (
+            APP, direntry.encode('ascii','replace')))
 
         # TODO Cancelar los requests anteriores si posible
         # El servidor se puede quedar pillado haciendo thumbnails
@@ -247,7 +247,8 @@ class ImageDir(FloatLayout, EventDispatcher):
 
     def img_selected(self, direntry):
         fn = urljoin(self.content.path, direntry)
-        Logger.debug("%s: img_selected %s" % (APP, fn))
+        Logger.debug("%s: img_selected %s" % (
+            APP, fn.encode('ascii', 'replace')))
         self.dispatch('on_img_selected', self.content.path, direntry)
 
         # TODO Cancelar los requests anteriores si posible
