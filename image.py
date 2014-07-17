@@ -8,6 +8,7 @@ from kivy.logger import Logger
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import AsyncImage
 from kivy.animation import Animation
+from kivy.uix.stencilview import StencilView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.network.urlrequest import UrlRequest
 
@@ -28,6 +29,7 @@ Builder.load_string('''
             id: image
             x: root.x
             y: root.y
+            fill: root.fill
             width: root.width
             height: root.height
             orientation: root.orientation
@@ -71,6 +73,7 @@ def clear_cache():
 class RotImage(AsyncImage):
     angle = NumericProperty(0)
     orientation = NumericProperty(1)
+    fill = BooleanProperty(False)
 
     def get_norm_image_size(self):
         if not self.texture:
@@ -88,17 +91,22 @@ class RotImage(AsyncImage):
             if not self.keep_ratio:
                 return w, h
             iw = w
+        elif self.fill:
+            iw = w
         else:
             iw = min(w, tw)
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container
         # and calculate appropriate width. no need to test further. :)
-        if ih > h:
+        if ih > h and not self.fill:
             if self.allow_stretch:
                 ih = h
             else:
                 ih = min(h, th)
+            iw = ih * ratio
+        elif ih < h and self.fill:
+            ih = h
             iw = ih * ratio
 
         return iw, ih
@@ -129,11 +137,10 @@ class RotImage(AsyncImage):
 
     def _on_source_load(self, value):
         super(RotImage, self)._on_source_load(value)
-        self.allow_stretch = True
         Animation(color=(1,1,1,1), duration=0.2).start(self)
 
 
-class CachedImage(FloatLayout):
+class CachedImage(FloatLayout, StencilView):
     x = NumericProperty()
     y = NumericProperty()
     angle = NumericProperty(0)
@@ -144,6 +151,7 @@ class CachedImage(FloatLayout):
     load = BooleanProperty(True)
     allow_scale = BooleanProperty(False)
     image_scale = NumericProperty(1.0)  # To be used by parent widgets
+    fill = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CachedImage, self).__init__(**kwargs)

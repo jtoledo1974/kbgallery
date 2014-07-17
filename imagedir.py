@@ -31,33 +31,53 @@ Builder.load_string('''
     orientation: 1
     canvas:
         Color:
-            rgba: 1, 1, 1, 1
+            rgba: 0, 0, 0, 1
         Rectangle:
             size: (self.size[0], self.size[1]*.25)
             pos: self.pos
     CachedImage:
-        x: root.x
-        y: root.y
+        pos_hint: {'x': 0, 'y': 0.25}
+        size_hint: (1, 0.75)
         source: root.source
+        fill: True
         orientation: root.orientation
         load: not app.delay_image_loading
+        canvas.before:
+            Color:
+                rgba: 0,0,0,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
     Label:
-        pos_hint: {'center_x': 0.5, 'y': 0}
-        text_size: (root.width, None)
+        pos_hint: {'x': 0.02, 'top': 0.24}
+        text_size: (root.width*0.96, None)
         text: root.text
         size: self.texture_size
         size_hint: (None, None)
-        color: (0, 0, 0, 1)
-    Label:
-        pos_hint: {'center_x': 0.5, 'top': 1}
-        text_size: (root.width, None)
-        text: str(root.orientation)
-        size: self.texture_size
-        size_hint: (None, None)
+
+<Imgentry@ButtonBehavior+FloatLayout>:
+    text: ''
+    source: None
+    orientation: 1
+    CachedImage:
+        x: root.x
+        y: root.y
+        source: root.source
+        fill: True
+        orientation: root.orientation
+        load: not app.delay_image_loading
 
 <DirlistRow>:
     size_hint_y: None
     height: 240
+    padding: 5
+    spacing: 5
+    canvas:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
     Direntry:
         text: root.dir1
         source: root.thumb1
@@ -72,17 +92,17 @@ Builder.load_string('''
 <ImglistRow>:
     size_hint_y: None
     height: 160
-    Direntry:
+    Imgentry:
         text: root.f1
         source: root.t1
         orientation: root.o1
         on_release: root.img_selected(root.f1)
-    Direntry:
+    Imgentry:
         text: root.f2
         source: root.t2
         orientation: root.o2
         on_release: root.img_selected(root.f2)
-    Direntry:
+    Imgentry:
         text: root.f3
         source: root.t3
         orientation: root.o3
