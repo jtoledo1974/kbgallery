@@ -188,7 +188,7 @@ class ImageDir(FloatLayout, EventDispatcher):
         self.req.cancel = False
 
     def got_dirlist(self, req, res):
-        Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
+        # Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
         if req.cancel:
             return
 
@@ -235,6 +235,8 @@ class ImageDir(FloatLayout, EventDispatcher):
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (
             APP, direntry.encode('ascii','replace')))
+
+        # return
 
         # TODO Cancelar los requests anteriores si posible
         # El servidor se puede quedar pillado haciendo thumbnails
@@ -354,7 +356,10 @@ class Imglist(ListView):
             )
 
         super(Imglist, self).__init__(adapter=adapter, **kwargs)
-        self.children[0].scroll_timeout = 500
+
+        scrollview = self.children[0]
+        scrollview.scroll_timeout = 500
+        scrollview.scroll_distance = 5
 
 
 class DirlistRow(BoxLayout):
@@ -365,6 +370,10 @@ class DirlistRow(BoxLayout):
     orientation1 = NumericProperty(1)
     orientation2 = NumericProperty(1)
     direntry_selected = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        print "DirlistRow args %s" % kwargs
+        super(DirlistRow, self).__init__(**kwargs)
 
 
 class Dirlist(ListView):
@@ -390,7 +399,10 @@ class Dirlist(ListView):
             )
 
         super(Dirlist, self).__init__(adapter=adapter, **kwargs)
-        self.children[0].scroll_timeout = 500
+
+        scrollview = self.children[0]
+        scrollview.scroll_timeout = 500
+        scrollview.scroll_distance = 5
 
 
 class ImageCarousel(Carousel):
@@ -473,9 +485,9 @@ class ImageCarousel(Carousel):
 
     def _insert_visible_slides(self, _next_slide=None, _prev_slide=None):
         super(ImageCarousel, self)._insert_visible_slides(_next_slide, _prev_slide)
-        if self._prev:
-            self._prev.children[0].load = True
-        if self._next:
-            self._next.children[0].load = True
         if self._current:
             self._current.children[0].load = True
+        if self._next:
+            self._next.children[0].load = True
+        if self._prev:
+            self._prev.children[0].load = True
