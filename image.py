@@ -6,7 +6,7 @@ from os.path import join, dirname
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import Image
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.uix.floatlayout import FloatLayout
@@ -70,7 +70,7 @@ def clear_cache():
             raise
 
 
-class RotImage(AsyncImage):
+class RotImage(Image):
     angle = NumericProperty(0)
     orientation = NumericProperty(1)
     fill = BooleanProperty(False)
@@ -135,9 +135,8 @@ class RotImage(AsyncImage):
             self._rotate = True
         self.previous_orientation = value
 
-    def _on_source_load(self, value):
-        super(RotImage, self)._on_source_load(value)
-        Animation(color=(1,1,1,1), duration=0.2).start(self)
+    def on_source(self, widget, value):
+        Animation(color=(1, 1, 1, 1), duration=0.2).start(self)
 
 
 class CachedImage(FloatLayout, StencilView):
