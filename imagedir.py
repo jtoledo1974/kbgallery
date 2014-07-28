@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+import errno
+from os import makedirs
+from json import loads, dumps
 from urllib import quote
+from os.path import join
 from posixpath import join as urljoin
 from itertools import islice, izip
-from json import loads
+from functools import partial
 
 from kivy import platform
 from kivy.lang import Builder
+from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
@@ -130,6 +135,46 @@ def group(lst, n):
     return izip(*[islice(lst, i, None, n) for i in range(n)])
 
 
+class ResCache():
+    def __init__(self):
+        self.o = {}
+        filename = join(".kbimgcache", "rescache.json")
+        try:
+            self.o_file = open(filename, "r+")
+            self.o = loads(self.o_file.read())
+        except:
+            try:
+                try:
+                    makedirs(".kbimgcache")
+                except OSError as exception:
+                    if exception.errno != errno.EEXIST:
+                        raise
+                self.o_file = open(filename, "w")
+            except:
+                Logger.warning(
+                    "Error trying to open ResCache file %s for writing"
+                    % filename)
+
+    def _save(self):
+        self.o_file.seek(0)
+        self.o_file.truncate()
+        self.o_file.write(dumps(self.o))
+        self.o_file.flush()
+
+    def set(self, url, res):
+        Logger.debug("Setting res %s for url %s" % (res, url))
+        self.o[url] = res
+        self._save()
+
+    def get(self, url):
+        try:
+            return self.o[url]
+        except:
+            Logger.warning("Res not found for url %s" % url)
+            return None
+
+rescache = ResCache()
+
 _direntries = []
 
 
@@ -181,16 +226,30 @@ class ImageDir(FloatLayout, EventDispatcher):
         root = self.server_url
         self.path = path
         path = quote((path).encode('utf-8'))
-        self.req = UrlRequest(urljoin(root, path, ''),
+        url = urljoin(root, path, '')
+        self.req = UrlRequest(url,
                               on_success=self.got_dirlist,
                               debug=True)
         self.dispatch('on_loading_start')
         self.req.cancel = False
 
-    def got_dirlist(self, req, res):
+        res = rescache.get(url)
+        if res:
+            # Create the widget content from the cache data, but since this is
+            # called from the parent's init, wait until this object is fully
+            # initialized
+            callback = partial(self.got_dirlist, None, res)
+            Clock.schedule_once(callback, 0)
+
+    def got_dirlist(self, req, res, dt=0):
         # Logger.debug("%s: got_dirlist (req %s, results %s" % (APP, req, res))
-        if req.cancel:
+        if req and req.cancel:
             return
+        elif req:
+            self.dispatch('on_loading_stop')
+            if res == rescache.get(req.url):
+                return
+            rescache.set(req.url, res)
 
         # TODO in partial results sdir may be None
         sdir, direntries = get_direntries(res)
@@ -228,9 +287,10 @@ class ImageDir(FloatLayout, EventDispatcher):
         listwidget.adapter.data = data
         listwidget._reset_spopulate()
 
+        if req and self.content:
+            self.remove_widget(self.content)
         self.add_widget(listwidget)
         self.content = listwidget
-        self.dispatch('on_loading_stop')
 
     def direntry_selected(self, direntry):
         Logger.debug("%s: on_direntry_selected %s" % (
