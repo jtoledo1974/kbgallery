@@ -11,16 +11,19 @@ from functools import partial
 from kivy import platform
 from kivy.lang import Builder
 from kivy.clock import Clock
-from kivy.logger import Logger
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.event import EventDispatcher
+from kivy.logger import Logger
+from kivy.graphics import Color, Rectangle
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.core.window import Window
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
 from kivy.uix.listview import ListView
 from kivy.uix.carousel import Carousel
-from kivy.adapters.listadapter import ListAdapter
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.floatlayout import FloatLayout
 from kivy.network.urlrequest import UrlRequest
+from kivy.adapters.listadapter import ListAdapter
 
 from image import CachedImage
 
@@ -30,36 +33,6 @@ FILE = 'file'
 
 
 Builder.load_string('''
-<Direntry@ButtonBehavior+FloatLayout>:
-    text: ''
-    source: None
-    orientation: 1
-    canvas:
-        Color:
-            rgba: 0, 0, 0, 1
-        Rectangle:
-            size: (self.size[0], self.size[1]*.25)
-            pos: self.pos
-    CachedImage:
-        pos_hint: {'x': 0, 'y': 0.25}
-        size_hint: (1, 0.75)
-        source: root.source
-        fill: True
-        orientation: root.orientation
-        load: not app.delay_image_loading
-        canvas.before:
-            Color:
-                rgba: 0,0,0,1
-            Rectangle:
-                size: self.size
-                pos: self.pos
-    Label:
-        pos_hint: {'x': 0.02, 'top': 0.24}
-        text_size: (root.width*0.96, None)
-        text: root.text
-        size: self.texture_size
-        size_hint: (None, None)
-
 <Imgentry@ButtonBehavior+FloatLayout>:
     text: ''
     source: None
@@ -71,28 +44,6 @@ Builder.load_string('''
         fill: True
         orientation: root.orientation
         load: not app.delay_image_loading
-
-<DirlistRow>:
-    size_hint_y: None
-    height: 240
-    padding: 5
-    spacing: 5
-    canvas:
-        Color:
-            rgba: 0.1, 0.1, 0.1, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
-    Direntry:
-        text: root.dir1
-        source: root.thumb1
-        orientation: root.orientation1
-        on_release: root.direntry_selected(root.dir1)
-    Direntry:
-        text: root.dir2
-        source: root.thumb2
-        orientation: root.orientation2
-        on_release: root.direntry_selected(root.dir2)
 
 <ImglistRow>:
     size_hint_y: None
@@ -199,6 +150,89 @@ def get_direntries(res):
                 pass
         _direntries = []
         return sdir, direntries
+
+
+# <Direntry@ButtonBehavior+FloatLayout>:
+#     text: ''
+#     source: None
+#     orientation: 1
+#     canvas:
+#         Color:
+#             rgba: 0, 0, 0, 1
+#         Rectangle:
+#             size: (self.size[0], self.size[1]*.25)
+#             pos: self.pos
+#     CachedImage:
+#         pos_hint: {'x': 0, 'y': 0.25}
+#         size_hint: (1, 0.75)
+#         source: root.source
+#         fill: True
+#         orientation: root.orientation
+#         load: not app.delay_image_loading
+#         canvas.before:
+#             Color:
+#                 rgba: 0,0,0,1
+#             Rectangle:
+#                 size: self.size
+#                 pos: self.pos
+#     Label:
+#         pos_hint: {'x': 0.02, 'top': 0.24}
+#         text_size: (root.width*0.96, None)
+#         text: root.text
+#         size: self.texture_size
+#         size_hint: (None, None)
+
+class Direntry(ButtonBehavior, FloatLayout):
+    text = StringProperty("")
+    source = StringProperty("")
+    orientation = NumericProperty(1)
+
+    def __init__(self, **kwargs):
+        super(Direntry, self).__init__(**kwargs)
+
+        with self.canvas:
+            Color(0, 0, 0, 1)
+            self.r = Rectangle()
+
+        self.ci = CachedImage(pos_hint={'x': 0, 'y': 0.25},
+                              size_hint=(1, 0.75),
+                              fill=True)
+        with self.ci.canvas.before:
+            Color(0, 0, 0, 1)
+            self.ci.r = Rectangle()
+        self.add_widget(self.ci)
+
+        self.l = Label(pos_hint={'x': 0.02, 'top': 0.24},
+                           size_hint=(None, None))
+        self.l.bind(texture_size=lambda *a: setattr(self.l, 'size', a[1]))
+        self.add_widget(self.l)
+
+        self.bind(pos=self.update_pos, size=self.update_size,
+                  source=self.update_source,
+                  orientation=self.update_orientation,
+                  text=self.update_text)
+
+        self.update_source(None, self.source)
+        self.update_orientation(None, self.orientation)
+        self.update_text(None, self.text)
+
+    def update_pos(self, widget, pos):
+        self.r.pos = pos
+        self.ci.r.pos = pos
+
+    def update_size(self, widget, size):
+        self.r.size = (size[0], size[1]*0.25)
+        self.ci.r.size = size
+        self.l.text_size = (size[0]*0.96, None)
+
+    def update_source(self, i, source):
+        self.ci.source = source
+
+    def update_orientation(self, i, orientation):
+        self.ci.orientation = orientation
+
+    def update_text(self, i, text):
+        self.l.text = text
 
 
 class ImageDir(FloatLayout, EventDispatcher):
@@ -421,8 +455,31 @@ class Imglist(ListView):
         scrollview.scroll_timeout = 500
         scrollview.scroll_distance = 5
 
+# <DirlistRow>:
+#     size_hint_y: None
+#     height: 240
+#     padding: 5
+#     spacing: 5
+#     canvas:
+#         Color:
+#             rgba: 0.1, 0.1, 0.1, 1
+#         Rectangle:
+#             size: self.size
+#             pos: self.pos
+#     Direntry:
+#         text: root.dir1
+#         source: root.thumb1
+#         orientation: root.orientation1
+#         on_release: root.direntry_selected(root.dir1)
+#     Direntry:
+#         text: root.dir2
+#         source: root.thumb2
+#         orientation: root.orientation2
+#         on_release: root.direntry_selected(root.dir2)
+
 
 class DirlistRow(BoxLayout):
+
     dir1 = StringProperty()
     dir2 = StringProperty()
     thumb1 = StringProperty()
@@ -430,6 +487,39 @@ class DirlistRow(BoxLayout):
     orientation1 = NumericProperty(1)
     orientation2 = NumericProperty(1)
     direntry_selected = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(DirlistRow, self).__init__(**kwargs)
+
+        self.size_hint_y = None
+        self.height = 240
+        self.padding = 5
+        self.spacing = 5
+
+        with self.canvas.before:
+            Color(0.1, 0.1, 0.1, 1)
+            self.r = Rectangle()
+
+        self.de1 = Direntry(text=self.dir1,
+                            source=self.thumb1,
+                            orientation=self.orientation1,
+                            on_release=lambda *a: self.direntry_selected(self.dir1))
+
+        self.de2 = Direntry(text=self.dir2,
+                            source=self.thumb2,
+                            orientation=self.orientation2,
+                            on_release=lambda *a: self.direntry_selected(self.dir2))
+
+        self.add_widget(self.de1)
+        self.add_widget(self.de2)
+
+        self.bind(pos=self.update_pos, size=self.update_size)
+
+    def update_pos(self, i, pos):
+        self.r.pos = pos
+
+    def update_size(self, i, size):
+        self.r.size = size
 
 
 class Dirlist(ListView):
