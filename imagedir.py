@@ -431,10 +431,6 @@ class DirlistRow(BoxLayout):
     orientation2 = NumericProperty(1)
     direntry_selected = ObjectProperty()
 
-    def __init__(self, **kwargs):
-        print "DirlistRow args %s" % kwargs
-        super(DirlistRow, self).__init__(**kwargs)
-
 
 class Dirlist(ListView):
 
@@ -494,14 +490,30 @@ class ImageCarousel(Carousel):
         return False
 
     def on_path(self, widget, path):
+        if not self.server_url:
+            return
         self.clear_widgets()
-        UrlRequest(urljoin(self.server_url, quote((path).encode('utf-8')), ""),
-                   on_success=self.got_dir)
+        url = urljoin(self.server_url, quote((path).encode('utf-8')), "")
+        UrlRequest(url, on_success=self.got_dir)
+        res = rescache.get(url)
+        if res:
+            # Create the widget content from the cache data, but since this is
+            # called from the parent's init, wait until this object is fully
+            # initialized
+            callback = partial(self.got_dir, None, res)
+            Clock.schedule_once(callback, 0)
 
     def on_server_url(self, widget, server_url):
         self.on_path(None, self.path)
 
-    def got_dir(self, req, res):
+    def got_dir(self, req, res, dt=0):
+        if req:
+            if res == rescache.get(req.url):
+                return
+            else:
+                self.clear_widgets()
+                rescache.set(req.url, res)
+
         sdir, direntries = get_direntries(res)
 
         files = [de for de in direntries if de[2] == FILE]
