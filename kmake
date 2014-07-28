@@ -1,7 +1,8 @@
 #!/bin/bash
-ANDROID_HOME=~/.buildozer/android/platform/android-sdk-21
-ADB=$ANDROID_HOME/platform-tools/adb
-CLASSPATH=$ANDROID_HOME/platforms/android-14/android.jar
+# ANDROID_HOME=~/.buildozer/android/platform/android-sdk-21
+#ADB=$ANDROID_HOME/platform-tools/adb
+# CLASSPATH=$ANDROID_HOME/platforms/android-14/android.jar
+ADB=adb
 set -x
 
 #cd /media/JTC/planilla
@@ -30,6 +31,18 @@ then
         }
         exit
         "
+    if [ -n "$2" ]
+	then
+	FILE=/home/toledo/$2
+	expect -c "
+        spawn /usr/bin/scp -r $FILE root@$1:/data/data/org.jtc.kbgallery/files/lib/python2.7/site-packages/kivy/uix
+        expect {
+          "*password:*" { send "cunter38"\r\n; interact }
+          eof { exit }
+        }
+        exit
+        "
+    fi
 else
 	echo Falta dirección del ssh
 fi
