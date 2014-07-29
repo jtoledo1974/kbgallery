@@ -4,6 +4,7 @@ from zlib import crc32
 from shutil import rmtree
 from os.path import join, dirname
 from kivy.logger import Logger
+from kivy.clock import Clock
 from kivy.graphics import PushMatrix, Rotate, PopMatrix
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import Image
@@ -16,6 +17,16 @@ from kivy.network.urlrequest import UrlRequest
 APP = "KBImage"
 
 cache_root = ".kbimgcache"
+
+max_image_load_count = 1
+image_load_count = max_image_load_count
+
+
+def reset_image_load_count(dt):
+    global image_load_count
+    image_load_count = max_image_load_count
+
+trigger_reset = Clock.create_trigger(reset_image_load_count)
 
 
 def set_cache_dir(root):
@@ -203,7 +214,8 @@ class CachedImage(FloatLayout, StencilView):
         self.fn = fn = join(cache_root, fn[:2], fn)
         try:
             open(fn)  # Keep for reference: getattr(os.lstat(fn), 'st_size')
-            self.image.source = fn
+            # Try to load at most one image per frame
+            Clock.schedule_once(self.set_image_source, 0)
         except:
             try:
                 makedirs(dirname(fn))
@@ -212,6 +224,15 @@ class CachedImage(FloatLayout, StencilView):
                     raise
             UrlRequest(url=source, on_success=self.img_downloaded, file_path=fn,
                        on_failure=self.cleanup, on_error=self.cleanup)
+
+    def set_image_source(self, dt):
+        global image_load_count
+        if image_load_count:
+            self.image.source = self.fn
+            image_load_count -= 1
+            trigger_reset()
+        else:
+            Clock.schedule_once(self.set_image_source, 0)
 
     def on_load(self, widget, load):
         if not load or not self.source:
