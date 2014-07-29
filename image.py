@@ -1,42 +1,19 @@
 import errno
-from os import makedirs, lstat, unlink
+from os import makedirs, unlink
 from zlib import crc32
 from shutil import rmtree
 from os.path import join, dirname
-from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.graphics import PushMatrix, Rotate, PopMatrix
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import Image
+from kivy.uix.scatter import Scatter
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.network.urlrequest import UrlRequest
 
 APP = "KBImage"
-
-Builder.load_string('''
-<CachedImage>:
-    image: image
-    scatter: scatter
-    Scatter:
-        id: scatter
-        do_rotation: False
-        do_scale: False
-        do_translation: False
-        scale_min: 1.0
-        on_scale: root.on_scatter_scale(*args)
-        RotImage:
-            id: image
-            x: root.x
-            y: root.y
-            fill: root.fill
-            width: root.width
-            height: root.height
-            orientation: root.orientation
-
-
-''')
 
 cache_root = ".kbimgcache"
 
@@ -87,9 +64,9 @@ class RotImage(Image):
         self.bind(angle=self.update_angle, center=self.update_center)
         self.update_angle(None, self.angle)
         self.update_center(None, self.center)
+        self.on_orientation(self, self.orientation)
 
     def update_angle(self, i, angle):
-        print "Angle %s" % angle
         self.rot.angle = angle
 
     def update_center(self, i, center):
@@ -155,6 +132,7 @@ class RotImage(Image):
 
 
 class CachedImage(FloatLayout, StencilView):
+
     x = NumericProperty()
     y = NumericProperty()
     angle = NumericProperty(0)
@@ -169,8 +147,36 @@ class CachedImage(FloatLayout, StencilView):
 
     def __init__(self, **kwargs):
         super(CachedImage, self).__init__(**kwargs)
+
+        self.scatter = Scatter(do_rotation=False,
+                               do_scale=False,
+                               do_translation=False,
+                               scale_min=1.0,
+                               on_scale=self.on_scatter_scale)
+        self.image = RotImage()
+
+        self.add_widget(self.scatter)
+        self.scatter.add_widget(self.image)
+
+        self.bind(pos=self.update_pos, size=self.update_size,
+                  fill=self.update_fill, orientation=self.update_orientation)
+
         self.on_source(self, self.source)
         self.on_allow_scale(self, self.allow_scale)
+        self.update_fill(self, self.fill)
+        self.update_orientation(self, self.orientation)
+
+    def update_pos(self, i, pos):
+        self.image.pos = pos
+
+    def update_size(self, i, size):
+        self.image.size = size
+
+    def update_fill(self, i, fill):
+        self.image.fill = fill
+
+    def update_orientation(self, i, orientation):
+        self.image.orientation = orientation
 
     def on_allow_scale(self, widget, allow):
         if not self.scatter:
