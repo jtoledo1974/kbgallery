@@ -5,6 +5,7 @@ from shutil import rmtree
 from os.path import join, dirname
 from kivy.lang import Builder
 from kivy.logger import Logger
+from kivy.graphics import PushMatrix, Rotate, PopMatrix
 from kivy.properties import AliasProperty, BooleanProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.image import Image
 from kivy.animation import Animation
@@ -34,19 +35,7 @@ Builder.load_string('''
             height: root.height
             orientation: root.orientation
 
-<RotImage>:
-    angle: 0
-    orientation: 1
-    color: [0, 0, 0, 1]
-    nocache: True
-    canvas.before:
-        PushMatrix
-        Rotate:
-            angle:root.angle
-            axis: 0, 0, 1
-            origin: root.center
-    canvas.after:
-        PopMatrix
+
 ''')
 
 cache_root = ".kbimgcache"
@@ -71,9 +60,40 @@ def clear_cache():
 
 
 class RotImage(Image):
+
     angle = NumericProperty(0)
     orientation = NumericProperty(1)
     fill = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+
+        self.previous_orientation = 1
+        self._rotate = False
+
+        super(RotImage, self).__init__(**kwargs)
+
+        self.angle = 0
+        self.orientation = 1
+        self.color = (0, 0, 0, 1)
+        self.nocache = True
+
+        with self.canvas.before:
+            PushMatrix()
+            self.rot = Rotate(axis=(0, 0, 1))
+
+        with self.canvas.after:
+            PopMatrix()
+
+        self.bind(angle=self.update_angle, center=self.update_center)
+        self.update_angle(None, self.angle)
+        self.update_center(None, self.center)
+
+    def update_angle(self, i, angle):
+        print "Angle %s" % angle
+        self.rot.angle = angle
+
+    def update_center(self, i, center):
+        self.rot.origin = center
 
     def get_norm_image_size(self):
         if not self.texture:
@@ -121,11 +141,6 @@ class RotImage(Image):
     :attr:`norm_image_size` is a :class:`~kivy.properties.AliasProperty` and is
     read-only.
     '''
-
-    def __init__(self, **kwargs):
-        self.previous_orientation = 1
-        self._rotate = False
-        super(RotImage, self).__init__(**kwargs)
 
     def on_orientation(self, widget, value):
         self.angle = {1: 0, 3: 180, 6: 270, 8: 90}[value]
